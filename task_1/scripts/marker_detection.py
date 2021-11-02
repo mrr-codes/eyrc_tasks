@@ -89,6 +89,8 @@ class image_proc():
 
     def publish_data(self):
         self.marker_pub.publish(self.marker_msg)
+	rospy.loginfo(self.marker_msg)
+	print(self.marker_msg)
         self.rate.sleep()
 
 
