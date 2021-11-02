@@ -81,8 +81,7 @@ class image_proc():
                 self.marker_msg.x = centre[0]
                 self.marker_msg.y = centre[1]
                 self.marker_msg.yaw = angle[key]
-                # print('angle: ', angle[key])
-                print('key: ', key)
+                self.publish_data()
 
         except CvBridgeError as e:
             print(e)
