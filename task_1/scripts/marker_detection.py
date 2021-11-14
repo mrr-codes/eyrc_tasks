@@ -85,7 +85,7 @@ class image_proc():
 
         except CvBridgeError as e:
             print(e)
-            return self.publish_data()
+            return 
 
     def publish_data(self):
         self.marker_pub.publish(self.marker_msg)
