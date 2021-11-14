@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
-    <arg name="record" default="false"/>
+    <arg name="record" default="true"/>
     <arg name="duration" default="30"/>
     <arg name="rec_name" default="aruco_detection.bag"/>
     
@@ -9,6 +9,7 @@
         <arg name="world_name"  value="$(find task_1)/worlds/task1_2.world"/>
     </include>
     <node name="moving_marker" type="moving_marker.py" pkg="task_1" />
+    <node name="marker_detection" pkg="task_1" type="marker_detection.py"/>
     
 	<group if="$(arg record)">
 		<node name="throttled_model_states" type="throttle" pkg="topic_tools" args="messages /gazebo/model_states 10"/>
