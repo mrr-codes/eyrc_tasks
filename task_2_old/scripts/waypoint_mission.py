@@ -68,16 +68,6 @@ class Modes:
         except rospy.ServiceException as e:
             print("Service Push call failed: %s" % e)
 
-    def wpPull(self, na):
-        rospy.wait_for_service('mavros/mission/pull')
-        try:
-            wpPullService = rospy.ServiceProxy(
-                'mavros/mission/pull', WaypointPull, persistent=True)
-            print(wpPullService().wp_received)
-
-        except rospy.ServiceException as e:
-            print("Service Puling call failed: %s" % e)
-
 
 class stateMoniter:
 
@@ -150,7 +140,6 @@ def main():
 
     print(wps)
     md.wpPush(0, wps)
-    md.wpPull(0)
 
     # Arming the drone
     while not stateMt.state.armed:
