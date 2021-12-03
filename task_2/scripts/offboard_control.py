@@ -150,10 +150,11 @@ def main():
     pos.pose.position.z= setpoints[i][2]
     def check_position():
         desired = np.array((setpoints[i][0],setpoints[i][1],setpoints[i][2]))
-        pos = np.array((local_pos.x,
-                        local_pos.y,
-                        local_pos.z))
-        return np.linalg.norm(desired - pos) < 0.5
+        pos = np.array((stateMt.local_pos.x,
+                        stateMt.local_pos.y,
+                        stateMt.local_pos.z))
+        print(np.linalg.norm(desired -pos))
+        return np.linalg.norm(desired - pos) < 2
 
     # Publish the setpoints 
     
@@ -175,11 +176,12 @@ def main():
         '''
 
         stateMt
-        ofb_ctl
-        ofb_ctl.paramset
-        reached= check_position
-        if reached==True & i<=len(setpoints-1):
+        ofb_ctl.setArm
+        ofb_ctl.offboard_set_mode
+        reached= check_position()
+        if (reached==True) and (i<=len(setpoints)-1):
             i+=1
+            print(i)
             
 
 
