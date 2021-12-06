@@ -158,6 +158,7 @@ def main():
                         stateMt.local_pos.y,
                         stateMt.local_pos.z))
         print(np.linalg.norm(desired - pos))
+
         return np.linalg.norm(desired - pos) < 0.08
 
     # Publish the setpoints
@@ -179,9 +180,11 @@ def main():
         ofb_ctl.setArm
         ofb_ctl.offboard_set_mode
         reached = check_position()
-        if (reached == True) and (i <= len(setpoints)-1):
+        if (reached == True) and (i <= 4):
             i += 1
             print(i)
+            if i == 5:
+                break
 
         pos.pose.position.x = setpoints[i][0]
         pos.pose.position.y = setpoints[i][1]
