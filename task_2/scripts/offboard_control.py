@@ -69,6 +69,17 @@ class offboard_control:
 
         except rospy.ServiceException as e:
             print("Service setting mode call failed: %s" % e)
+    def land_mode(self):
+        rospy.wait_for_service('mavros/set_mode')
+        try:
+
+            set_land = rospy.ServiceProxy(
+                'mavros/set_mode', mavros_msgs.srv.SetMode)
+            set_land(custom_mode="AUTO.LAND")
+
+        except rospy.ServiceException as e:
+            print("Service setting mode call failed: %s" % e)
+
 
 
 class stateMoniter:
@@ -159,7 +170,7 @@ def main():
                         stateMt.local_pos.z))
         print(np.linalg.norm(desired - pos))
         
-        return np.linalg.norm(desired - pos) < 0.08
+        return np.linalg.norm(desired - pos) < 0.5
 
     # Publish the setpoints
 
@@ -184,7 +195,8 @@ def main():
             i += 1
             print(i)
             if i==5:
-                break
+               offboard_control.land_mode
+               break
             
             
 
