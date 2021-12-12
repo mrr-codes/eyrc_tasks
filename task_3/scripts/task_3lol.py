@@ -1,4 +1,4 @@
-from re import X
+#!/usr/bin/env python3
 import rospy
 from geometry_msgs.msg import *
 from mavros_msgs.msg import *
@@ -43,12 +43,7 @@ class offboard_control:
 
         # Similarly delacre other service proxies
 
-   
-   
-   
-   
-   
-   
+
     def offboard_set_mode(self):
 
         # Call /mavros/set_mode to set the mode the drone to OFFBOARD
@@ -64,21 +59,14 @@ class offboard_control:
             print("Service setting mode call failed: %s" % e)
     
     
-    
-    
-    
-    
-    
-    def land_mode(self):
+    def setAutoLandMode(self):
         rospy.wait_for_service('mavros/set_mode')
         try:
-
-            set_land = rospy.ServiceProxy(
-                'mavros/set_mode', mavros_msgs.srv.SetMode)
-            set_land(custom_mode="AUTO.LAND")
-
+            flightModeService = rospy.ServiceProxy('mavros/set_mode', mavros_msgs.srv.SetMode)
+            flightModeService(custom_mode='AUTO.LAND')
         except rospy.ServiceException as e:
-            print("Service setting mode call failed: %s" % e)
+            print ("service set_mode call failed: %s. Autoland Mode could not be set" % e)
+    
 
 
 
@@ -105,7 +93,7 @@ class stateMoniter:
     
     def gripper_check_clbk(self, msg):
         check_gripper = msg.data 
-        rospy.loginfo(check_gripper)
+        #rospy.loginfo(check_gripper)
         return check_gripper
 
 
@@ -117,19 +105,6 @@ class stateMoniter:
 
 
 def main():
-
-    i = 0
-    def check_position():
-        desired = np.array((setpoints[i][0], setpoints[i][1], setpoints[i][2]))
-        pos = np.array((stateMt.local_pos.x,
-                        stateMt.local_pos.y,
-                        stateMt.local_pos.z))
-        print(np.linalg.norm(desired - pos))
-        
-        return np.linalg.norm(desired - pos) < 0.5
-
-
-
 
     stateMt = stateMoniter()
     ofb_ctl = offboard_control()
@@ -196,6 +171,15 @@ def main():
         ofb_ctl.offboard_set_mode()
         rate.sleep()
         print("OFFBOARD mode activated")
+    i = 0
+    def check_position():
+        desired = np.array((setpoints[i][0], setpoints[i][1], setpoints[i][2]))
+        pos = np.array((stateMt.local_pos.x,
+                        stateMt.local_pos.y,
+                        stateMt.local_pos.z))
+        print(np.linalg.norm(desired - pos))
+        
+        return np.linalg.norm(desired - pos) < 0.5
 
 
 
@@ -212,8 +196,8 @@ def main():
             i += 1
             print(i)
             if i==5:
-               offboard_control.land_mode
-               break
+               offboard_control.setAutoLandMode
+            
             
             
 
