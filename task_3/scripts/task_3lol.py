@@ -25,6 +25,7 @@ from mavros_msgs.srv import *
 import numpy as np
 from std_msgs.msg import *
 from gazebo_ros_link_attacher.srv import Gripper
+import time
 
 
 class offboard_control:
@@ -105,9 +106,8 @@ class stateMoniter:
 
     # Create more callback functions for other subscribers
     def gripper_check_clbk(self, msg):
-        check_gripper = msg.data
+        self.check_gripper = msg.data
         # rospy.loginfo(check_gripper)
-        return check_gripper
 
 
 def main():
@@ -181,7 +181,7 @@ def main():
                         stateMt.local_pos.z))
         print(np.linalg.norm(desired - pos))
 
-        return np.linalg.norm(desired - pos) < 0.5
+        return np.linalg.norm(desired - pos) < 0.2
 
     # Publish the setpoints
 
@@ -205,13 +205,15 @@ def main():
         if reached == True and (i == 1 or i == 4 or i == 5):
 
             ofb_ctl.setAutoLandMode()
+            time.sleep(1)  # trying to create time for grip
             print('Attempted to land')
             # print(reached)
             if (i <= 5):
                 i = i + 1
                 if i == 4:
                     # stateMt.gripper_check_clbk()
-                    ofb_ctl.gripper_activate(True)
+                    if stateMt.check_gripper == 'True':
+                        ofb_ctl.gripper_activate(True)
                 elif i == 5:
                     # stateMt.gripper_check_clbk()
                     ofb_ctl.gripper_activate(False)
