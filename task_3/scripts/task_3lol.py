@@ -18,7 +18,6 @@ This node publishes and subsribes the following topics:
     
 '''
 
-from re import X
 import rospy
 from geometry_msgs.msg import *
 from mavros_msgs.msg import *
