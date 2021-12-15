@@ -24,6 +24,7 @@ from mavros_msgs.msg import *
 from mavros_msgs.srv import *
 import numpy as np
 from std_msgs.msg import *
+from gazebo_ros_link_attacher.srv import Gripper
 
 
 class offboard_control:
@@ -69,18 +70,20 @@ class offboard_control:
 
         except rospy.ServiceException as e:
             print("Service setting mode call failed: %s" % e)
+
     def setAutoLandMode(self):
         rospy.wait_for_service('mavros/set_mode')
-        
-        set_ModeService = rospy.ServiceProxy('mavros/set_mode', mavros_msgs.srv.SetMode)
+
+        set_ModeService = rospy.ServiceProxy(
+            'mavros/set_mode', mavros_msgs.srv.SetMode)
         set_ModeService(custom_mode='AUTO.LAND')
         print("inside autoland")
-        #except rospy.ServiceException as e:
-            #print ("service set_mode call failed: %s. Autoland Mode could not be set" % e)
-    
-    def gripper_activate(self,grip_control):
-        rospy.wait_for_service('activate_gripper')
-        gripper= rospy.ServiceProxy('activate_gripper',std_msgs.srv.Bool)
+        # except rospy.ServiceException as e:
+        #print ("service set_mode call failed: %s. Autoland Mode could not be set" % e)
+
+    def gripper_activate(self, grip_control):
+        rospy.wait_for_service('/activate_gripper')
+        gripper = rospy.ServiceProxy('/activate_gripper', Gripper)
         gripper(grip_control)
 
 
@@ -102,8 +105,8 @@ class stateMoniter:
 
     # Create more callback functions for other subscribers
     def gripper_check_clbk(self, msg):
-        check_gripper = msg.data 
-        #rospy.loginfo(check_gripper)
+        check_gripper = msg.data
+        # rospy.loginfo(check_gripper)
         return check_gripper
 
 
@@ -121,7 +124,8 @@ def main():
     rate = rospy.Rate(20.0)
 
     # Make the list of setpoints
-    setpoints = [(0, 0, 3), (3, 0, 3),(3,0,3), (3,3,3), (3,3,3),(0,0,3)]  # List to setpoints
+    setpoints = [(0, 0, 3), (3, 0, 3), (3, 0, 3), (3, 3, 3),
+                 (3, 3, 3), (0, 0, 3)]  # List to setpoints
 
     # Similarly initialize other publishers
 
@@ -143,7 +147,7 @@ def main():
     rospy.Subscriber("/mavros/state", State, stateMt.stateCb)
 
     rospy.Subscriber("/mavros/local_position/pose", PoseStamped, stateMt.posCb)
-    rospy.Subscriber('/gripper_check', String ,stateMt.gripper_check_clbk)
+    rospy.Subscriber('/gripper_check', String, stateMt.gripper_check_clbk)
 
     '''
     NOTE: To set the mode as OFFBOARD in px4, it needs atleast 100 setpoints at rate > 10 hz, so before changing the mode to OFFBOARD, send some dummy setpoints  
@@ -176,7 +180,7 @@ def main():
                         stateMt.local_pos.y,
                         stateMt.local_pos.z))
         print(np.linalg.norm(desired - pos))
-        
+
         return np.linalg.norm(desired - pos) < 0.5
 
     # Publish the setpoints
@@ -196,33 +200,30 @@ def main():
 
         stateMt
         ofb_ctl.setArm()
-        
+
         reached = check_position()
-        if reached==True and (i==1 or i==4 or i==5):
+        if reached == True and (i == 1 or i == 4 or i == 5):
 
-
-            ofb_ctl.setAutoLandMode() 
+            ofb_ctl.setAutoLandMode()
             print('Attempted to land')
-            #print(reached)
-            if (i<=5):
+            # print(reached)
+            if (i <= 5):
                 i = i + 1
-                if i==4:
-                    stateMt.gripper_check_clbk()
+                if i == 4:
+                    # stateMt.gripper_check_clbk()
                     ofb_ctl.gripper_activate(True)
-                elif i==5:
-                    stateMt.gripper_check_clbk()
+                elif i == 5:
+                    # stateMt.gripper_check_clbk()
                     ofb_ctl.gripper_activate(False)
 
-
-        elif reached==True:
+        elif reached == True:
             print("off", i)
-            i=i+1
+            i = i+1
 
             print(i)
             dummy_points()
             ofb_ctl.offboard_set_mode()
-        print(setpoints[i])    
-            
+        print(setpoints[i])
 
         pos.pose.position.x = setpoints[i][0]
         pos.pose.position.y = setpoints[i][1]
