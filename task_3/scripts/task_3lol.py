@@ -86,6 +86,7 @@ class offboard_control:
         rospy.wait_for_service('/activate_gripper')
         gripper = rospy.ServiceProxy('/activate_gripper', Gripper)
         gripper(grip_control)
+        print("gripper_activated")
 
 
 class stateMoniter:
@@ -181,7 +182,7 @@ def main():
                         stateMt.local_pos.z))
         print(np.linalg.norm(desired - pos))
 
-        return np.linalg.norm(desired - pos) < 0.2
+        return np.linalg.norm(desired - pos) < 0.05
 
     # Publish the setpoints
 
@@ -205,20 +206,19 @@ def main():
         if reached == True and (i == 1 or i == 4 or i == 5):
 
             ofb_ctl.setAutoLandMode()
-            time.sleep(1)  # trying to create time for grip
+            rospy.sleep(10)  # trying to create time for grip
             print('Attempted to land')
             # print(reached)
             if (i <= 5):
                 i = i + 1
-                if i == 4:
-                    # stateMt.gripper_check_clbk()
-                    if stateMt.check_gripper == 'True':
-                        ofb_ctl.gripper_activate(True)
+                if stateMt.check_gripper == 'True':
+                        ofb_ctl.gripper_activate("True")
+                        print("grippertrue")
                 elif i == 5:
                     # stateMt.gripper_check_clbk()
                     ofb_ctl.gripper_activate(False)
 
-        elif reached == True:
+        if reached == True:
             print("off", i)
             i = i+1
 
