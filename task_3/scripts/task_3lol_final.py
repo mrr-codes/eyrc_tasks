@@ -203,7 +203,7 @@ def main():
         ofb_ctl.setArm()
 
         reached = check_position()
-        if reached == True and (i == 1 or i == 4 or i == 5):
+        if reached == True and (i == 1 or i == 3 or i == 5):
 
             ofb_ctl.setAutoLandMode()
             c += 1
