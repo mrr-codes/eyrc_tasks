@@ -192,7 +192,7 @@ def main():
 
             ofb_ctl.setAutoLandMode()
             c += 1
-            rospy.sleep(6)  # trying to create time for grip
+            rospy.sleep(8)  # trying to create time for grip
             print('Attempted to land c=', str(c))
             # print(reached)
             if (i <= 5):
