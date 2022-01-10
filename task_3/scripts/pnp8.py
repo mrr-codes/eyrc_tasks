@@ -192,7 +192,7 @@ def main():
 
     # Set your velocity here
     vel = TwistStamped()
-    vel.twist.linear.x = 3
+    vel.twist.linear.x = 0
     vel.twist.linear.y = 0
     vel.twist.linear.z = 0
 
@@ -246,7 +246,7 @@ def main():
             img_proc.box_setpoint = (stateMt.local_pos.x+0.2,
                                      stateMt.local_pos.y, stateMt.local_pos.z)
 
-            setpoints.splice(2, 0, img_proc.box_setpoint)
+            setpoints.insert(2, img_proc.box_setpoint)
             print('Setpoints after adding new spt--- ', setpoints)
             img_proc.aruco_thresh_bool = True
 
@@ -334,7 +334,7 @@ def main():
         pos.pose.position.z = setpoints[i][2]
 
         local_pos_pub.publish(pos)
-        local_vel_pub.publish(vel)
+        # local_vel_pub.publish(vel)
 
         rate.sleep()
 
