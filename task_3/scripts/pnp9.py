@@ -154,7 +154,7 @@ class image_processing:
             self.img = self.bridge.imgmsg_to_cv2(data, 'bgr8')
             img_2 = cv2.circle(self.img, (200, 200), radius=2,
                                color=(0, 0, 255), thickness=-1)
-            cv2.imshow('check_frame', img_2)
+            #cv2.imshow('check_frame', img_2)
             cv2.waitKey(1)
             self.Detected_ArUco_markers = self.detect_ArUco(self.img)
             for key in self.Detected_ArUco_markers.keys():
@@ -192,7 +192,7 @@ def main():
 
     # Make the list of setpoints
     # List to setpoints , (9, 0, 3),(0, 0, 3)
-    setpoints = [(0, 0, 3), (9, 0, 3)]
+    setpoints = [(0, 0, 3), (9, 0, 3),(9,0,3),(0,0,3)]
 
     # Similarly initialize other publishers
 
@@ -297,7 +297,7 @@ def main():
             pos.pose.position.z = 3
             # print(max(x))
             local_pos_pub.publish(pos)  # trying to create time for grip
-            if 0.2 < img_proc.distance_x_m < 0.4 and land_count == 0:
+            if 0.1 < img_proc.distance_x_m < 0.3 and land_count == 0:
                 print('In landing loop')
                 pos.pose.position.x = img_proc.box_setpoint[0]
                 pos.pose.position.y = 0  # img_proc.box_setpoint[1]
@@ -308,16 +308,15 @@ def main():
                 ofb_ctl.setAutoLandMode()
                 land_count += 1
                 print('Attempted to land c=', str(land_count))
-                rospy.sleep(5)
-                if stateMt.check_gripper == 'True':
-                    ofb_ctl.gripper_activate(True)
+                rospy.sleep(10)
+                ofb_ctl.gripper_activate(True)
                     #img_proc.aruco_thresh_bool == False
-                    dummy_points()
-                    ofb_ctl.offboard_set_mode()
-                    pos.pose.position.x = stateMt.local_pos.x
-                    pos.pose.position.y = stateMt.local_pos.y
-                    pos.pose.position.z = 3
-                    local_pos_pub.publish(pos)
+                dummy_points()
+                ofb_ctl.offboard_set_mode()
+                setpoint=(stateMt.local_pos.x,stateMt.local_pos.y,3) 
+                setpoints.insert(2,setpoint)
+                print(setpoints)
+                    
             # print(reached)
             # if (i < 5):
             #     i = i + 1
@@ -336,7 +335,7 @@ def main():
             pos.pose.position.y = setpoints[i][1]
             pos.pose.position.z = setpoints[i][2]
 
-        if reached == True and i < 1:
+        if reached == True and (i==0 or i==2):
             print("At ", i)
             i = i+1
 
