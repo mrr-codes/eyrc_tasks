@@ -249,6 +249,10 @@ def main():
         pos = np.array((stateMt.local_pos.x,
                         stateMt.local_pos.y,
                         stateMt.local_pos.z))
+        if len(img_proc.Detected_ArUco_markers)>0:
+                img_proc.aruco_thresh_bool = True
+                img_proc.box_setpoint = [stateMt.local_pos.x + img_proc.distance_x_m  , stateMt.local_pos.y]
+                print('Box is at ', img_proc.box_setpoint)
         #print(np.linalg.norm(desired - pos))
         #if img_proc.eucl_dist > 0:
     
@@ -285,10 +289,7 @@ def main():
 
         
 
-        if len(img_proc.Detected_ArUco_markers)>0:
-                img_proc.aruco_thresh_bool = True
-                img_proc.box_setpoint = [stateMt.local_pos.x + img_proc.distance_x_m  , stateMt.local_pos.y]
-                print('Box is at ', img_proc.box_setpoint)
+        
 
 
         setpoint=img_proc.box_setpoint
