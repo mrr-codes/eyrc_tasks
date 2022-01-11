@@ -252,6 +252,7 @@ def main():
                         stateMt.local_pos.y,
                         stateMt.local_pos.z))
         print('setpoint pos dist.', np.linalg.norm(desired - pos))
+        
         # if img_proc.eucl_dist > 0:
 
         # img_proc.box_setpoint = [stateMt.local_pos.x+img_proc.distance_x_m+0.2, stateMt.local_pos.y+img_proc.distance_y_m, stateMt.local_pos.z]
@@ -278,43 +279,45 @@ def main():
 
         reached = check_position()
 
+        
         if len(img_proc.Detected_ArUco_markers) > 0:
             img_proc.aruco_thresh_bool = True
             img_proc.box_setpoint = [
                 stateMt.local_pos.x + img_proc.distance_x_m, stateMt.local_pos.y]
             print('Box is at ', img_proc.box_setpoint)
-
         # if len(setpoint)>0 :
         #     y=float(setpoint[0])
         #     x.append(y)
         #     #print(' The current contents of x.append(y) is', x)
 
         # print(setpoint)
-        if img_proc.aruco_thresh_bool == True:
+        if img_proc.aruco_thresh_bool == True and land_count == 0:
 
             pos.pose.position.x = img_proc.box_setpoint[0]
             pos.pose.position.y = 0  # img_proc.box_setpoint[1]
             pos.pose.position.z = 3
             # print(max(x))
             local_pos_pub.publish(pos)  # trying to create time for grip
-            if 0.1 < img_proc.distance_x_m < 0.3 and land_count == 0:
+            if 0.2 < img_proc.distance_x_m < 0.4 :
                 print('In landing loop')
-                pos.pose.position.x = img_proc.box_setpoint[0]
+                pos.pose.position.x = stateMt.local_pos.x
                 pos.pose.position.y = 0  # img_proc.box_setpoint[1]
                 pos.pose.position.z = 3
                 # print(max(x))
                 local_pos_pub.publish(pos)
-                # rospy.sleep(3)
+                rospy.sleep(3)
                 ofb_ctl.setAutoLandMode()
                 land_count += 1
                 print('Attempted to land c=', str(land_count))
                 rospy.sleep(10)
                 ofb_ctl.gripper_activate(True)
-                    #img_proc.aruco_thresh_bool == False
+                img_proc.aruco_thresh_bool == False
                 dummy_points()
                 ofb_ctl.offboard_set_mode()
                 setpoint=(stateMt.local_pos.x,stateMt.local_pos.y,3) 
                 setpoints.insert(2,setpoint)
+                i=i+1
+
                 print(setpoints)
                     
             # print(reached)
@@ -335,7 +338,7 @@ def main():
             pos.pose.position.y = setpoints[i][1]
             pos.pose.position.z = setpoints[i][2]
 
-        if reached == True and (i==0 or i==2):
+        if reached == True and (i==0 or i==2 or i==3):
             print("At ", i)
             i = i+1
 
