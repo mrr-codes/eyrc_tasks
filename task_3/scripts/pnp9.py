@@ -311,7 +311,7 @@ def main():
                 print('Attempted to land c=', str(land_count))
                 rospy.sleep(10)
                 ofb_ctl.gripper_activate(True)
-                img_proc.aruco_thresh_bool == False
+                img_proc.aruco_thresh_bool = False
                 dummy_points()
                 ofb_ctl.offboard_set_mode()
                 setpoint=(stateMt.local_pos.x,stateMt.local_pos.y,3) 
