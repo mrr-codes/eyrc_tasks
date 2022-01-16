@@ -25,10 +25,15 @@ class offboard_control:
 
     def paramset():
         rospy.wait_for_service('/edrone0/mavros/param/set')
+        # rospy.wait_for_service('/edrone1/mavros/param/set')
         try:
-            change_mode = rospy.ServiceProxy(
+            change_mode_0 = rospy.ServiceProxy(
                 '/edrone0/mavros/param/set', mavros_msgs.srv.SetMode)
-            change_mode("COM_RCL_EXCEPT", 4)
+            change_mode_0("COM_RCL_EXCEPT", 4)
+
+            # change_mode_1 = rospy.ServiceProxy(
+            #     '/edrone1/mavros/param/set', mavros_msgs.srv.SetMode)
+            # change_mode_1("COM_RCL_EXCEPT", 4)
         except rospy.ServiceException as e:
             print("Service param failed %s" % e)
 
@@ -36,11 +41,16 @@ class offboard_control:
         # Calling to /mavros/cmd/arming to arm the drone and print fail message on failure
         # Waiting untill the service starts
         rospy.wait_for_service('/edrone0/mavros/cmd/arming')
+        # rospy.wait_for_service('/edrone1/mavros/cmd/arming')
         try:
             # Creating a proxy service for the rosservice named /mavros/cmd/arming for arming the drone
-            armService = rospy.ServiceProxy(
+            armService_0 = rospy.ServiceProxy(
                 '/edrone0/mavros/cmd/arming', mavros_msgs.srv.CommandBool)
-            armService(True)
+            armService_0(True)
+
+            # armService_1 = rospy.ServiceProxy(
+            #     '/edrone1/mavros/cmd/arming', mavros_msgs.srv.CommandBool)
+            # armService_1(True)
         except rospy.ServiceException as e:
             print("Service arming call failed: %s" % e)
 
@@ -53,28 +63,62 @@ class offboard_control:
         rospy.wait_for_service('/edrone0/mavros/set_mode')
         try:
 
-            set_ModeService = rospy.ServiceProxy(
+            set_ModeService_0 = rospy.ServiceProxy(
                 'edrone0/mavros/set_mode', mavros_msgs.srv.SetMode)
-            set_ModeService(custom_mode="OFFBOARD")
+            set_ModeService_0(custom_mode="OFFBOARD")
+
+            # set_ModeService_1 = rospy.ServiceProxy(
+            #     'edrone1/mavros/set_mode', mavros_msgs.srv.SetMode)
+            # set_ModeService_1(custom_mode="OFFBOARD")
 
         except rospy.ServiceException as e:
             print("Service setting mode call failed: %s" % e)
+# --
+    # def offboard_set_mode_1(self):
+
+    #   # Call /mavros/set_mode to set the mode the drone to OFFBOARD
+    #   # and print fail message on failure
+    #     rospy.wait_for_service('/edrone1/mavros/set_mode')
+    #     try:
+
+    #         set_ModeService_1 = rospy.ServiceProxy(
+    #             'edrone1/mavros/set_mode', mavros_msgs.srv.SetMode)
+    #         set_ModeService_1(custom_mode="OFFBOARD")
+
+    #     except rospy.ServiceException as e:
+    #         print("Service setting mode call failed: %s" % e)
 
     def setAutoLandMode(self):
         rospy.wait_for_service('/edrone0/mavros/set_mode')
 
-        set_ModeService = rospy.ServiceProxy(
+        set_ModeService_0 = rospy.ServiceProxy(
             '/edrone0/mavros/set_mode', mavros_msgs.srv.SetMode)
-        set_ModeService(custom_mode='AUTO.LAND')
+        set_ModeService_0(custom_mode='AUTO.LAND')
         print("inside autoland")
         # except rospy.ServiceException as e:
         #print ("service set_mode call failed: %s. Autoland Mode could not be set" % e)
+# --
+    # def setAutoLandMode_1(self):
+    #     rospy.wait_for_service('/edrone1/mavros/set_mode')
 
-    def gripper_activate(self, grip_control):
+    #     set_ModeService_1 = rospy.ServiceProxy(
+    #         '/edrone1/mavros/set_mode', mavros_msgs.srv.SetMode)
+    #     set_ModeService_1(custom_mode='AUTO.LAND')
+
+    #     print("inside autoland")
+
+    def gripper_activate_0(self, grip_control):
         rospy.wait_for_service('/edrone0/activate_gripper')
         gripper = rospy.ServiceProxy('/edrone0/activate_gripper', Gripper)
         gripper(grip_control)
-        print("gripper_activated_function")
+        print("gripper_activated_function_0")
+# --
+
+    def gripper_activate_1(self, grip_control):
+        rospy.wait_for_service('/edrone1/activate_gripper')
+        gripper = rospy.ServiceProxy('/edrone1/activate_gripper', Gripper)
+        gripper(grip_control)
+        print("gripper_activated_function_1")
 
 
 class stateMoniter:
