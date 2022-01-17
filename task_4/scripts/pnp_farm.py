@@ -123,19 +123,31 @@ class offboard_control:
 
 class stateMoniter:
     def __init__(self):
-        self.state = State()
-        # Instantiate a setpoints message
-        self.pos = PositionTarget()
-        self.local_pos = Point(0, 0, 0)
+        self.state_0 = State()
+        self.pos_0 = PositionTarget()
+        self.local_pos_0 = Point(0, 0, 0)
 
-    def stateCb(self, msg):
+        self.state_1 = State()
+        self.pos_1 = PositionTarget()
+        self.local_pos_1 = Point(0, 0, 0)
+
+    def stateCb_0(self, msg):
         # Callback function for topic /mavros/state
-        self.state = msg
+        self.state_0 = msg
 
-    def posCb(self, msg):
-        self.local_pos.x = msg.pose.position.x
-        self.local_pos.y = msg.pose.position.y
-        self.local_pos.z = msg.pose.position.z
+    def stateCb_1(self, msg):
+        # Callback function for topic /mavros/state
+        self.state_1 = msg
+
+    def posCb_0(self, msg):
+        self.local_pos_0.x = msg.pose.position.x
+        self.local_pos_0.y = msg.pose.position.y
+        self.local_pos_0.z = msg.pose.position.z
+
+    def posCb_1(self, msg):
+        self.local_pos_1.x = msg.pose.position.x
+        self.local_pos_1.y = msg.pose.position.y
+        self.local_pos_1.z = msg.pose.position.z
 
     # Create more callback functions for other subscribers
     def gripper_check_clbk(self, msg):
@@ -212,10 +224,15 @@ def main():
     img_proc = image_processing()
 
     # Initialize publishers
-    local_pos_pub = rospy.Publisher(
+    local_pos_pub_0 = rospy.Publisher(
         '/edrone0/mavros/setpoint_position/local', PoseStamped, queue_size=10)
-    local_vel_pub = rospy.Publisher(
+    local_vel_pub_0 = rospy.Publisher(
         '/edrone0/mavros/setpoint_velocity/cmd_vel', TwistStamped, queue_size=10)
+
+    # local_pos_pub_1 = rospy.Publisher(
+    #     '/edrone1/mavros/setpoint_position/local', PoseStamped, queue_size=10)
+    # local_vel_pub_1 = rospy.Publisher(
+    #     '/edrone1/mavros/setpoint_velocity/cmd_vel', TwistStamped, queue_size=10)
     # Specify the rate
     rate = rospy.Rate(20.0)
 
@@ -241,14 +258,24 @@ def main():
     box_setpoint = []
 
     # Initialize subscriber
-    rospy.Subscriber("/edrone0/mavros/state", State, stateMt.stateCb)
+    rospy.Subscriber("/edrone0/mavros/state", State, stateMt.stateCb_0)
 
     rospy.Subscriber("/edrone0/mavros/local_position/pose",
-                     PoseStamped, stateMt.posCb)
+                     PoseStamped, stateMt.posCb_0)
     rospy.Subscriber('/edrone0/gripper_check', String,
                      stateMt.gripper_check_clbk)
 
     rospy.Subscriber("/edrone0/camera/image_raw",
+                     Image, img_proc.image_callback)
+
+    rospy.Subscriber("/edrone1/mavros/state", State, stateMt.stateCb_1)
+
+    rospy.Subscriber("/edrone1/mavros/local_position/pose",
+                     PoseStamped, stateMt.posCb_1)
+    rospy.Subscriber('/edrone1/gripper_check', String,
+                     stateMt.gripper_check_clbk)
+
+    rospy.Subscriber("/edrone1/camera/image_raw",
                      Image, img_proc.image_callback)
 
     '''
@@ -257,18 +284,18 @@ def main():
     def dummy_points():
         for i in range(100):
             #print('Sending dummy points')
-            local_pos_pub.publish(pos)
+            local_pos_pub_0.publish(pos)
             rate.sleep()
     dummy_points()
     ofb_ctl.paramset
     # Arming the drone
-    while not stateMt.state.armed:
+    while not stateMt.state_0.armed:
         ofb_ctl.setArm()
         rate.sleep()
     print("Armed!!")
 
     # Switching the state to auto mode
-    while not stateMt.state.mode == "OFFBOARD":
+    while not stateMt.state_0.mode == "OFFBOARD":
         ofb_ctl.offboard_set_mode()
         rate.sleep()
     print("OFFBOARD mode activated")
@@ -279,9 +306,9 @@ def main():
 
     def check_position():
         desired = np.array((setpoints[i][0], setpoints[i][1], setpoints[i][2]))
-        pos = np.array((stateMt.local_pos.x,
-                        stateMt.local_pos.y,
-                        stateMt.local_pos.z))
+        pos = np.array((stateMt.local_pos_0.x,
+                        stateMt.local_pos_0.y,
+                        stateMt.local_pos_0.z))
         print(np.linalg.norm(desired - pos))
 
         return np.linalg.norm(desired - pos) < 0.5
@@ -353,9 +380,9 @@ def main():
         pos.pose.position.z = setpoints[i][2]
 
         if i == 1:
-            local_vel_pub.publish(vel)
+            local_vel_pub_0.publish(vel)
         else:
-            local_pos_pub.publish(pos)
+            local_pos_pub_0.publish(pos)
 
         rate.sleep()
 
