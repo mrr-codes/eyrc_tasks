@@ -115,8 +115,8 @@ class offboard_control:
 # --
 
     def gripper_activate_1(self, grip_control):
-        rospy.wait_for_service('/edrone1/activate_gripper')
-        gripper = rospy.ServiceProxy('/edrone1/activate_gripper', Gripper)
+        rospy.wait_for_service('/edrone0/activate_gripper')
+        gripper = rospy.ServiceProxy('/edrone0/activate_gripper', Gripper)
         gripper(grip_control)
         print("gripper_activated_function_1")
 
@@ -125,11 +125,11 @@ class stateMoniter:
     def __init__(self):
         self.state_0 = State()
         self.pos_0 = PositionTarget()
-        self.local_pos_0 = Point(0, 0, 0)
+        self.local_pos_0 = Point(-1, 1, 0)
 
         self.state_1 = State()
         self.pos_1 = PositionTarget()
-        self.local_pos_1 = Point(0, 0, 0)
+        self.local_pos_1 = Point(-1, 61, 0)
 
     def stateCb_0(self, msg):
         # Callback function for topic /mavros/state
@@ -268,15 +268,15 @@ def main():
     rospy.Subscriber("/edrone0/camera/image_raw",
                      Image, img_proc.image_callback)
 
-    rospy.Subscriber("/edrone1/mavros/state", State, stateMt.stateCb_1)
+    # rospy.Subscriber("/edrone1/mavros/state", State, stateMt.stateCb_1)
 
-    rospy.Subscriber("/edrone1/mavros/local_position/pose",
-                     PoseStamped, stateMt.posCb_1)
-    rospy.Subscriber('/edrone1/gripper_check', String,
-                     stateMt.gripper_check_clbk)
+    # rospy.Subscriber("/edrone1/mavros/local_position/pose",
+    #                  PoseStamped, stateMt.posCb_1)
+    # rospy.Subscriber('/edrone1/gripper_check', String,
+    #                  stateMt.gripper_check_clbk)
 
-    rospy.Subscriber("/edrone1/camera/image_raw",
-                     Image, img_proc.image_callback)
+    # rospy.Subscriber("/edrone1/camera/image_raw",
+    #                  Image, img_proc.image_callback)
 
     '''
     NOTE: To set the mode as OFFBOARD in px4, it needs atleast 100 setpoints at rate > 10 hz, so before changing the mode to OFFBOARD, send some dummy setpoints  
