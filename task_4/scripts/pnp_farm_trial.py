@@ -162,9 +162,14 @@ class image_processing:
         self.img = np.empty([])
         self.bridge = CvBridge()
         self.eucl_dist = 400
-        self.distance_x = 1000
+        self.distance_x = 400
+        self.distace_y = 400
+        self.distance_x_m = 0
+        self.distance_y_m = 0
         self.aruco_thresh_bool = False
         self.box_setpoint = list()
+        self.pixel_to_meter_ratio = 0
+        self.Detected_ArUco_markers = None
 
     def detect_ArUco(self, img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
