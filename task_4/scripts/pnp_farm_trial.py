@@ -184,9 +184,15 @@ class image_processing:
         #np_arr = Detected_ArUco_markers[_id]
         np_arr = corners
         tl = np_arr[0, 0]
-        #tr = np_arr[0, 1]
+        tr = np_arr[0, 1]
         br = np_arr[0, 2]
         #bl = np_arr[0, 3]
+
+        pixel_gap = abs(tl[0]-tr[0])
+        # finding pixel to metre conversion ratio
+        self.pixel_to_meter_ratio = 0.23/pixel_gap
+        #print('pixel_to_meter_ratio', self.pixel_to_meter_ratio)
+        print('')
 
         self.ctr = [(tl[0]+br[0])/2, (tl[1]+br[1])/2]
         return self.ctr
@@ -197,21 +203,22 @@ class image_processing:
             self.img = self.bridge.imgmsg_to_cv2(data, 'bgr8')
             img_2 = cv2.circle(self.img, (200, 200), radius=2,
                                color=(0, 0, 255), thickness=-1)
-            cv2.imshow('check_frame', img_2)
+            #cv2.imshow('check_frame', img_2)
             cv2.waitKey(1)
-            Detected_ArUco_markers = self.detect_ArUco(self.img)
-            for key in Detected_ArUco_markers.keys():
-                self.centre = self.calcuate_centre(Detected_ArUco_markers[key])
-                # math.sqrt(((200)-(self.centre[0]))**2)
-                self.distance_x = self.centre[0]-200.0
-                # math.sqrt(((200)-(self.centre[1]))**2)
-                distance_y = self.centre[1]-200.0
+            self.Detected_ArUco_markers = self.detect_ArUco(self.img)
+            for key in self.Detected_ArUco_markers.keys():
+                self.centre = self.calcuate_centre(
+                    self.Detected_ArUco_markers[key])
+                self.distance_x = self.centre[0]-200
+                self.distance_y = self.centre[1]-200
                 self.eucl_dist = math.sqrt(
                     ((200-self.centre[0])**2)+((200-self.centre[1])**2))
-                print('Aruco Centre at ', self.centre)
-                print("distance is", 'Eucl dist.-', self.eucl_dist,
-                      self.distance_x, distance_y)
-
+                self.distance_x_m = self.distance_x*self.pixel_to_meter_ratio
+                self.distance_y_m = self.distance_y*self.pixel_to_meter_ratio
+                #print(self.distance_y_m, 'This is y distance error in meters')
+                print("distance is", self.eucl_dist,
+                      self.distance_x_m, self.distance_y_m)
+                # print(self.centre)
         except CvBridgeError as e:
             print(e)
             return
@@ -344,15 +351,16 @@ def main():
         if img_proc.aruco_thresh_bool == True and land_count == 0:
 
             pos.pose.position.x = img_proc.box_setpoint[0]
-            pos.pose.position.y = 0  # img_proc.box_setpoint[1]
+            # img_proc.box_setpoint[1]
+            pos.pose.position.y = img_proc.box_setpoint[1]
             pos.pose.position.z = 3
             # print(max(x))
             local_pos_pub_0.publish(pos)  # trying to create time for grip
-            if 0.5 < img_proc.distance_x_m < 0.7:
+            if 0 < img_proc.distance_x_m < 0.05:
                 print('In landing loop')
-                pos.pose.position.x = stateMt.local_pos.x
-                # img_proc.box_setpoint[1]
-                pos.pose.position.y = stateMt.local_pos.y
+                rospy.sleep(3)
+                pos.pose.position.x = img_proc.box_setpoint[0]
+                pos.pose.position.y = 0  # img_proc.box_setpoint[1]
                 pos.pose.position.z = 3
                 # print(max(x))
                 local_pos_pub_0.publish(pos)
@@ -360,7 +368,7 @@ def main():
                 ofb_ctl.setAutoLandMode()
                 land_count += 1
                 print('Attempted to land c=', str(land_count))
-                rospy.sleep(12)
+                rospy.sleep(8)
                 print("gripping")
                 ofb_ctl.gripper_activate(True)
                 img_proc.aruco_thresh_bool = False
@@ -384,7 +392,8 @@ def main():
             #     print("making_gripper_false_inside_if")
 
         else:
-            dummy_points()
+            if (i == 0 or i == 2 or i == 4 or i == 5 or i == 6):
+                dummy_points()
             ofb_ctl.offboard_set_mode()
             pos.pose.position.x = setpoints[i][0]
             pos.pose.position.y = setpoints[i][1]
