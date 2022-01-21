@@ -194,6 +194,8 @@ class image_processing:
         #bl = np_arr[0, 3]
 
         pixel_gap = abs(tl[0]-tr[0])
+        if pixel_gap == 0:
+            pixel_gap = 10
         # finding pixel to metre conversion ratio
         self.pixel_to_meter_ratio = 0.23/pixel_gap
         #print('pixel_to_meter_ratio', self.pixel_to_meter_ratio)
@@ -208,7 +210,7 @@ class image_processing:
             self.img = self.bridge.imgmsg_to_cv2(data, 'bgr8')
             img_2 = cv2.circle(self.img, (200, 200), radius=2,
                                color=(0, 0, 255), thickness=-1)
-            #cv2.imshow('check_frame', img_2)
+            cv2.imshow('check_frame', img_2)
             cv2.waitKey(1)
             self.Detected_ArUco_markers = self.detect_ArUco(self.img)
             for key in self.Detected_ArUco_markers.keys():
@@ -221,7 +223,7 @@ class image_processing:
                 self.distance_x_m = self.distance_x*self.pixel_to_meter_ratio
                 self.distance_y_m = self.distance_y*self.pixel_to_meter_ratio
                 #print(self.distance_y_m, 'This is y distance error in meters')
-                print("distance is", self.eucl_dist,
+                print("distance is of ArUco id ", key, 'is ', self.eucl_dist,
                       self.distance_x_m, self.distance_y_m)
                 # print(self.centre)
         except CvBridgeError as e:
@@ -249,7 +251,7 @@ def main():
     rate = rospy.Rate(20.0)
 
     # Make the list of setpoints
-    setpoints = [(-1, 16, 3), (9, 16, 3), (9, 0, 3),
+    setpoints = [(-1, 1, 3), (-1, 16, 3), (13, 16, 3), (13.85, -7.4, 1.7),
                  (0, 0, 3)]  # List to setpoints
 
     # Similarly initialize other publishers
@@ -277,7 +279,7 @@ def main():
     rospy.Subscriber('/edrone0/gripper_check', String,
                      stateMt.gripper_check_clbk)
 
-    rospy.Subscriber("/iris_0/camera/image_raw",
+    rospy.Subscriber("/edrone0/camera/image_raw",
                      Image, img_proc.image_callback)
 
     # rospy.Subscriber("/edrone1/mavros/state", State, stateMt.stateCb_1)
@@ -287,7 +289,7 @@ def main():
     # rospy.Subscriber('/edrone1/gripper_check', String,
     #                  stateMt.gripper_check_clbk)
 
-    # rospy.Subscriber("/iris_1/camera/image_raw",
+    # rospy.Subscriber("/edrone1/camera/image_raw",
     #                  Image, img_proc.image_callback)
 
     '''
@@ -295,7 +297,7 @@ def main():
     '''
     def dummy_points():
         for i in range(100):
-            #print('Sending dummy points')
+            print('Sending dummy points')
             local_pos_pub_0.publish(pos)
             rate.sleep()
     dummy_points()
@@ -323,7 +325,7 @@ def main():
                         stateMt.local_pos_0.z))
         print(np.linalg.norm(desired - pos))
 
-        return np.linalg.norm(desired - pos) < 0.5
+        return np.linalg.norm(desired - pos) < 0.4
 
     # Publish the setpoints
     land_count = 0  # for land count
@@ -340,12 +342,10 @@ def main():
         stateMt
         ofb_ctl.setArm()
 
-        reached = check_position()
-
         if len(img_proc.Detected_ArUco_markers) > 0:
             img_proc.aruco_thresh_bool = True
             img_proc.box_setpoint = [
-                stateMt.local_pos.x + img_proc.distance_x_m, stateMt.local_pos.y]
+                stateMt.local_pos_0.x + img_proc.distance_x_m, stateMt.local_pos_0.y]
             print('Box is at ', img_proc.box_setpoint)
         # if len(setpoint)>0 :
         #     y=float(setpoint[0])
@@ -363,7 +363,7 @@ def main():
             local_pos_pub_0.publish(pos)  # trying to create time for grip
             if 0 < img_proc.distance_x_m < 0.05:
                 print('In landing loop')
-                rospy.sleep(3)
+                # rospy.sleep(3)
                 pos.pose.position.x = img_proc.box_setpoint[0]
                 pos.pose.position.y = 0  # img_proc.box_setpoint[1]
                 pos.pose.position.z = 3
@@ -375,11 +375,11 @@ def main():
                 print('Attempted to land c=', str(land_count))
                 rospy.sleep(8)
                 print("gripping")
-                ofb_ctl.gripper_activate(True)
+                ofb_ctl.gripper_activate_0(True)
                 img_proc.aruco_thresh_bool = False
-                dummy_points()
-                ofb_ctl.offboard_set_mode()
-                setpoint = (stateMt.local_pos.x, stateMt.local_pos.y, 3)
+                # dummy_points()
+                # ofb_ctl.offboard_set_mode()
+                setpoint = (stateMt.local_pos_0.x, stateMt.local_pos_0.y, 3)
                 setpoints.insert(2, setpoint)
                 i = i+1
 
@@ -397,14 +397,15 @@ def main():
             #     print("making_gripper_false_inside_if")
 
         else:
-            if (i == 0 or i == 2 or i == 4 or i == 5 or i == 6):
+            if (land_count == 1 or land_count == 4 or i == 5 or i == 6):
                 dummy_points()
             ofb_ctl.offboard_set_mode()
             pos.pose.position.x = setpoints[i][0]
             pos.pose.position.y = setpoints[i][1]
             pos.pose.position.z = setpoints[i][2]
 
-        if reached == True and (i == 0 or 1 < i < 6):
+        reached = check_position()
+        if reached == True and (i == 0 or 1 <= i < 6):
             print("At ", i)
             i = i+1
 
@@ -428,7 +429,7 @@ def main():
                 print("making_gripper_false_inside_if")
         if land_count == 3:
             break
-
+        local_pos_pub_0.publish(pos)
         rate.sleep()
 
 
