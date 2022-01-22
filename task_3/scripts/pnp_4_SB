@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
 
+from re import X
+from turtle import st
+
+from numpy.core.fromnumeric import shape
 import rospy
 from geometry_msgs.msg import *
 from mavros_msgs.msg import *
@@ -96,7 +100,7 @@ class stateMoniter:
     # Create more callback functions for other subscribers
     def gripper_check_clbk(self, msg):
         self.check_gripper = msg.data
-        # rospy.loginfo(self.check_gripper)
+        
 
 
 class image_processing:
@@ -108,8 +112,11 @@ class image_processing:
         self.eucl_dist = 400
         self.distance_x = 1000
         self.distance_y = 1000
+        self.distance_x_m = 0
+        self.distance_y_m = 0
         self.aruco_thresh_bool = False
         self.box_setpoint = list()
+        self.pixel_to_meter_ratio = 0
         self.Detected_ArUco_markers = []
 
     def detect_ArUco(self, img):
@@ -130,9 +137,12 @@ class image_processing:
         #np_arr = Detected_ArUco_markers[_id]
         np_arr = corners
         tl = np_arr[0, 0]
-        #tr = np_arr[0, 1]
+        tr = np_arr[0, 1]
         br = np_arr[0, 2]
         #bl = np_arr[0, 3]
+
+        pixel_gap = abs(tl[0]-tr[0])
+        self.pixel_to_meter_ratio = 0.23/pixel_gap
 
         self.ctr = [(tl[0]+br[0])/2, (tl[1]+br[1])/2]
         return self.ctr
@@ -151,11 +161,15 @@ class image_processing:
 
                 self.distance_x = self.centre[0]-200.0
                 self.distance_y = self.centre[1]-200.0
-                # self.eucl_dist = math.sqrt(
-                #     ((200-self.centre[0])**2)+((200-self.centre[1])**2))
-                # print('Aruco Centre at ', self.centre)
-                # print("distance is", 'Eucl dist.-', self.eucl_dist,
-                #       self.distance_x, distance_y)
+                self.eucl_dist = math.sqrt(
+                    ((200-self.centre[0])**2)+((200-self.centre[1])**2))
+                self.distance_x_m = self.distance_x*self.pixel_to_meter_ratio
+                self.distance_y_m = self.distance_y*self.pixel_to_meter_ratio
+                #print(self.distance_y_m, 'This is y distance error in meters')
+                '''print("distance is", self.eucl_dist,
+                      self.distance_x_m, self.distance_y_m)'''
+                # print(self.centre)
+
 
         except CvBridgeError as e:
             print(e)
@@ -177,8 +191,7 @@ def main():
     rate = rospy.Rate(20.0)
 
     # Make the list of setpoints
-    setpoints = [(0, 0, 3), (9, 0, 3), (9, 0, 3),
-                 (0, 0, 3)]  # List to setpoints
+    setpoints = [(0, 0, 3), (9, 0, 3), (9, 0, 3),(0, 0, 3)]  # List to setpoints
 
     # Similarly initialize other publishers
 
@@ -241,11 +254,12 @@ def main():
         pos = np.array((stateMt.local_pos.x,
                         stateMt.local_pos.y,
                         stateMt.local_pos.z))
-        print('error to desired position:',np.linalg.norm(desired - pos))
+        #print('error to desired position:',np.linalg.norm(desired - pos))
 
-        return np.linalg.norm(desired - pos) < 0.1
+        return np.linalg.norm(desired - pos) < 0.03
 
     land_count = 0  # for land count
+    flag1 = False
 
 
 
@@ -254,37 +268,62 @@ def main():
         stateMt
         ofb_ctl.setArm()
         reached = check_position()
-        print(img_proc.Detected_ArUco_markers)
+        #print(img_proc.Detected_ArUco_markers)
 
         if len(img_proc.Detected_ArUco_markers) > 0:
-            print('Aruco marker detected')
+            #print('Aruco marker detected')
             img_proc.aruco_thresh_bool = True
-            vel.twist.linear.x = ((img_proc.distance_x)*stateMt.local_pos.z)/500
-            vel.twist.linear.y = -(img_proc.distance_y*stateMt.local_pos.z)/500
-            print('Box detected, the x and y velocities are:',vel.twist.linear.x, vel.twist.linear.y)
+            vel.twist.linear.x = ((img_proc.distance_x)*stateMt.local_pos.z)/200
+            vel.twist.linear.y = -(img_proc.distance_y*stateMt.local_pos.z)/200
+            #print('Box detected, the x and y velocities are:',vel.twist.linear.x, vel.twist.linear.y)
             vel.twist.linear.z = 0
 
-            local_vel_pub.publish(vel)
-            print('error to image:', img_proc.distance_x, img_proc.distance_y)
             
+            #print('error to image:', img_proc.distance_x, img_proc.distance_y)
 
-            if abs(img_proc.distance_x)<3 and abs(img_proc.distance_y)<3:
 
-                rospy.sleep(3)
-                ofb_ctl.setAutoLandMode()
-                land_count += 1
-                print('Attempted to land c=', str(land_count))
-                rospy.sleep(8)
-                print("Gripping the box")
-                ofb_ctl.gripper_activate(True)
-                img_proc.aruco_thresh_bool = False
-                dummy_points()
-                ofb_ctl.offboard_set_mode()
-                setpoint=(stateMt.local_pos.x,stateMt.local_pos.y,3) 
-                setpoints.insert(i+1,setpoint)
+            if abs(img_proc.distance_x)<20 and abs(img_proc.distance_y)<20:
+
+                flag1 = True
+
+
+                setpoint_stable=(stateMt.local_pos.x,stateMt.local_pos.y,2) 
+                setpoints.insert(i+1,setpoint_stable)
                 i=i+1
-                print(setpoints)
+                               
 
+                if reached == True :                                
+                    
+                    img_proc.box_setpoint = [stateMt.local_pos.x + img_proc.distance_x_m, stateMt.local_pos.y]
+                    print('Box is at ', img_proc.box_setpoint)
+
+                    pos.pose.position.x = img_proc.box_setpoint[0]
+                    pos.pose.position.y = img_proc.box_setpoint[1]
+                    pos.pose.position.z = 1
+
+                    if reached == True:
+                        print('In landing loop')
+                        rospy.sleep(5)
+                        ofb_ctl.setAutoLandMode()
+                        land_count += 1
+                        print('Attempted to land c=', str(land_count))
+                        rospy.sleep(8)
+                        print("Gripping the box")
+                        ofb_ctl.gripper_activate(True)
+                        img_proc.aruco_thresh_bool = False
+                        dummy_points()
+                        ofb_ctl.offboard_set_mode()
+                        setpoint=(stateMt.local_pos.x,stateMt.local_pos.y,3) 
+                        setpoints.insert(i+1,setpoint)
+                        i=i+1
+                        print('Setting flag1 to false again')
+                        flag1 = False
+                        #print(setpoints)
+
+                local_pos_pub.publish(pos)
+
+            if flag1 == False and stateMt.local_pos.z>2.5:    
+                local_vel_pub.publish(vel)
 
 
 
@@ -295,11 +334,11 @@ def main():
             pos.pose.position.x = setpoints[i][0]
             pos.pose.position.y = setpoints[i][1]
             pos.pose.position.z = setpoints[i][2]
-            
+
             local_pos_pub.publish(pos)
             local_vel_pub.publish(vel)
 
-            if reached == True:
+            if reached == True and flag1 == False:
                 print("Reached goal")
 
                 if i == len(setpoints):
@@ -311,18 +350,18 @@ def main():
                 else: 
                     i = i+1
 
-                                
- 
+
+
             if land_count%2 == 0 and stateMt.check_gripper == 'True':
                 rospy.sleep(5)    
                 ofb_ctl.gripper_activate(False)
                 print("Releasing box")
 
-  
+
         rate.sleep()
 
 
-      
+
 
 
 if __name__ == '__main__':
