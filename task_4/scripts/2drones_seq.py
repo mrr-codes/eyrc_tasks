@@ -283,8 +283,8 @@ def drone_0():
     rate = rospy.Rate(20.0)
 
     # Make the list of setpoints
-    setpoints_0 = [(-1, 1, 3), (-1, 16, 3), (13, 16, 3),
-                   (13.85, -7.4, 3)]  # List to setpoints
+    setpoints_0 = [(0, 0, 3), (-1, 16, 3), (3, 16, 3), (15.7, -5.94, 3), (15.7, -5.94, 1.7), (-1, 28, 3), (3, 28, 3), (16.55, -5.94, 3), (16.55, -5.94, 1.7), (0, 0, 3)
+                   ]  # List to setpoints
 
     # Similarly initialize other publishers
 
@@ -319,7 +319,7 @@ def drone_0():
     '''
     def dummy_points_0():
         for i in range(100):
-            print('Sending dummy points')
+            print('d0 Sending dummy points')
             local_pos_pub_0.publish(pos_0)
             rate.sleep()
     dummy_points_0()
@@ -328,13 +328,13 @@ def drone_0():
     while not stateMt.state_0.armed:
         ofb_ctl.setArm_0()
         rate.sleep()
-    print("Armed!!")
+    print("d0 Armed!!")
 
     # Switching the state to auto mode
     while not stateMt.state_0.mode == "OFFBOARD":
         ofb_ctl.offboard_set_mode_0()
         rate.sleep()
-    print("OFFBOARD mode activated")
+    print("d0 OFFBOARD mode activated")
     i = 0
 
     pos_0.pose.position.x = setpoints_0[i][0]
@@ -347,9 +347,9 @@ def drone_0():
         pos = np.array((stateMt.local_pos_0.x,
                         stateMt.local_pos_0.y,
                         stateMt.local_pos_0.z))
-        print(np.linalg.norm(desired - pos))
+        print('d0', np.linalg.norm(desired - pos))
 
-        return np.linalg.norm(desired - pos) < 0.1
+        return np.linalg.norm(desired - pos) < 0.2
 
     # Publish the setpoints
     land_count = 0  # for land count
@@ -372,9 +372,9 @@ def drone_0():
         reached = check_position_0()
         if (reached == True) and (i <= 4):
             i += 1
-            print(i)
-            if i == 5:
-                offboard_control.land_mode
+            print('d0 off to sp.', i)
+            if i == 10:
+                offboard_control.setAutoLandMode_0()
                 break
 
         pos_0.pose.position.x = setpoints_0[i][0]
@@ -407,7 +407,8 @@ def drone_1():
                      Image, img_proc.image_callback_1)
     rate = rospy.Rate(20.0)
 
-    setpoints_1 = [(-1, 61, 3), (-1, 52, 3), (13, 52, 3), (56, 64, 3)]
+    setpoints_1 = [(0, 0, 3), (-1, -12, 3), (3, -12, 3),
+                   (58.35, 6.21, 3), (58.35, 6.21, 1.7), (-1, -32, 3), (3, -32, 3), (59.2, 6.21, 3), (59.2, 6.21, 1.7), (0, 0, 3)]
 
     pos_1 = PoseStamped()
     pos_1.pose.position.x = 0
@@ -422,14 +423,14 @@ def drone_1():
 
     def dummy_points_1():
         for i in range(100):
-            print('Sending dummy points')
+            print('d1 Sending dummy points')
             local_pos_pub_1.publish(pos_1)
             rate.sleep()
     dummy_points_1()
     while not stateMt.state_1.armed:
         ofb_ctl.setArm_1()
         rate.sleep()
-    print("Armed!!")
+    print("d1 Armed!!")
 
     # Switching the state to auto mode
     while not stateMt.state_1.mode == "OFFBOARD":
@@ -437,7 +438,7 @@ def drone_1():
         ofb_ctl.offboard_set_mode_1()
 
         rate.sleep()
-    print("OFFBOARD mode activated")
+    print("d1 OFFBOARD mode activated")
     j = 0
     pos_1.pose.position.x = setpoints_1[j][0]
     pos_1.pose.position.y = setpoints_1[j][1]
@@ -449,7 +450,7 @@ def drone_1():
         pos = np.array((stateMt.local_pos_1.x,
                         stateMt.local_pos_1.y,
                         stateMt.local_pos_1.z))
-        print(np.linalg.norm(desired - pos))
+        print('d1', np.linalg.norm(desired - pos))
 
         return np.linalg.norm(desired - pos) < 0.1
 
@@ -474,9 +475,9 @@ def drone_1():
         reached = check_position_1()
         if (reached == True) and (j <= 4):
             j += 1
-            print(j)
-            if j == 5:
-                offboard_control.land_mode
+            print('d1 off to sp.', j)
+            if j == 10:
+                offboard_control.setAutoLandMode_1()
                 break
 
         pos_1.pose.position.x = setpoints_1[j][0]
