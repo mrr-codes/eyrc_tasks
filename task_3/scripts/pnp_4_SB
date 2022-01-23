@@ -256,7 +256,7 @@ def main():
                         stateMt.local_pos.z))
         #print('error to desired position:',np.linalg.norm(desired - pos))
 
-        return np.linalg.norm(desired - pos) < 0.03
+        return np.linalg.norm(desired - pos) < 0.01
 
     land_count = 0  # for land count
     flag1 = False
@@ -273,8 +273,8 @@ def main():
         if len(img_proc.Detected_ArUco_markers) > 0:
             #print('Aruco marker detected')
             img_proc.aruco_thresh_bool = True
-            vel.twist.linear.x = ((img_proc.distance_x)*stateMt.local_pos.z)/200
-            vel.twist.linear.y = -(img_proc.distance_y*stateMt.local_pos.z)/200
+            vel.twist.linear.x = ((img_proc.distance_x)*stateMt.local_pos.z)/200                         
+            vel.twist.linear.y = 0 #-(img_proc.distance_y*stateMt.local_pos.z)/200
             #print('Box detected, the x and y velocities are:',vel.twist.linear.x, vel.twist.linear.y)
             vel.twist.linear.z = 0
 
@@ -282,7 +282,7 @@ def main():
             #print('error to image:', img_proc.distance_x, img_proc.distance_y)
 
 
-            if abs(img_proc.distance_x)<20 and abs(img_proc.distance_y)<20:
+            if 0<img_proc.distance_x<20: #and abs(img_proc.distance_y)<20
 
                 flag1 = True
 
@@ -298,18 +298,25 @@ def main():
                     print('Box is at ', img_proc.box_setpoint)
 
                     pos.pose.position.x = img_proc.box_setpoint[0]
-                    pos.pose.position.y = img_proc.box_setpoint[1]
+                    pos.pose.position.y = 0 # img_proc.box_setpoint[1]
                     pos.pose.position.z = 1
 
                     if reached == True:
                         print('In landing loop')
                         rospy.sleep(5)
                         ofb_ctl.setAutoLandMode()
-                        land_count += 1
+                        
                         print('Attempted to land c=', str(land_count))
                         rospy.sleep(8)
                         print("Gripping the box")
                         ofb_ctl.gripper_activate(True)
+
+                        if stateMt.check_gripper == 'True':
+                            print('The box has beem gripped')
+                            land_count += 1
+                        
+                        else: print('The box can not be gripped')
+
                         img_proc.aruco_thresh_bool = False
                         dummy_points()
                         ofb_ctl.offboard_set_mode()
@@ -336,7 +343,7 @@ def main():
             pos.pose.position.z = setpoints[i][2]
 
             local_pos_pub.publish(pos)
-            local_vel_pub.publish(vel)
+            #local_vel_pub.publish(vel)
 
             if reached == True and flag1 == False:
                 print("Reached goal")
