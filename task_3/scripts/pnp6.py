@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 
 
-from re import X
-from turtle import st
-
-from numpy.core.fromnumeric import shape
 import rospy
 from geometry_msgs.msg import *
 from mavros_msgs.msg import *
