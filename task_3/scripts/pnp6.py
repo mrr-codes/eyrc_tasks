@@ -147,7 +147,7 @@ class image_processing:
 
         try:
             self.img = self.bridge.imgmsg_to_cv2(data, 'bgr8')
-            img_2 = cv2.circle(self.img, (200, 200), radius=2,
+            img_2 = cv2.circle(self.img, (200, 225), radius=2,
                                color=(0, 0, 255), thickness=-1)
             cv2.imshow('check_frame', img_2)
             cv2.waitKey(1)
@@ -156,7 +156,7 @@ class image_processing:
                 self.centre = self.calcuate_centre(self.Detected_ArUco_markers[key])
 
                 self.distance_x = self.centre[0]-200.0
-                self.distance_y = self.centre[1]-200.0
+                self.distance_y = self.centre[1]-225.0
                 self.eucl_dist = math.sqrt(
                     ((200-self.centre[0])**2)+((200-self.centre[1])**2))
                 self.distance_x_m = self.distance_x*self.pixel_to_meter_ratio
@@ -287,6 +287,7 @@ def main():
                 setpoint_stable=(stateMt.local_pos.x,stateMt.local_pos.y,2) 
                 setpoints.insert(i+1,setpoint_stable)
                 i=i+1
+                #local_pos_pub.publish(pos)
                                
 
                 if reached == True :                                
@@ -297,6 +298,8 @@ def main():
                     pos.pose.position.x = img_proc.box_setpoint[0]
                     pos.pose.position.y = img_proc.box_setpoint[1]
                     pos.pose.position.z = 1
+                    
+                    local_pos_pub.publish(pos)
 
                     if reached == True:
                         print('In landing loop')
