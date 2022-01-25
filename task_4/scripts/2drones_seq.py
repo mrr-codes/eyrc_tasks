@@ -278,7 +278,7 @@ def drone_0():
     rate = rospy.Rate(20.0)
 
     # Make the list of setpoints
-    setpoints_0 = [(0, 0, 3), (-1, 16, 3), (3, 16, 3), (15.7, -5.94, 3), (15.7, -5.94, 1.7), (-1, 28, 3), (3, 28, 3), (16.55, -5.94, 3), (16.55, -5.94, 1.7), (0, 0, 3)
+    setpoints_0 = [(0, 0, 3), (-1, 16, 3), (3, 16, 3), (15.7, -5.94, 3), (15.7, -5.94, 1.7), (-1, 24, 3), (3, 24, 3), (16.55, -5.94, 3), (16.55, -5.94, 1.7), (0, 0, 3)
                    ]  # List to setpoints
 
     # Similarly initialize other publishers
@@ -548,6 +548,7 @@ def drone_1():
 
     # Publish the setpoints
     land_count = 0  # for land count
+    flag1 = False
     while not rospy.is_shutdown():
 
         '''
@@ -585,7 +586,7 @@ def drone_1():
 
                 setpoint_stable = (stateMt.local_pos_1.x,
                                    stateMt.local_pos_1.y, 2)
-                setpoints_1.insert(i+1, setpoint_stable)
+                setpoints_1.insert(j+1, setpoint_stable)
                 i = i+1
                 # local_pos_pub.publish(pos)
 
@@ -623,8 +624,8 @@ def drone_1():
                         ofb_ctl.offboard_set_mode_1()
                         setpoint = (stateMt.local_pos_1.x,
                                     stateMt.local_pos_1.y, 3)
-                        setpoints_1.insert(i+1, setpoint)
-                        i = i+1
+                        setpoints_1.insert(j+1, setpoint)
+                        j = j+1
                         print('Setting flag1 to false again')
                         flag1 = False
                         # print(setpoints_1)
@@ -638,24 +639,24 @@ def drone_1():
             # dummy_points()
             ofb_ctl.offboard_set_mode_1()
 
-            pos_1.pose.position.x = setpoints_1[i][0]
-            pos_1.pose.position.y = setpoints_1[i][1]
-            pos_1.pose.position.z = setpoints_1[i][2]
+            pos_1.pose.position.x = setpoints_1[j][0]
+            pos_1.pose.position.y = setpoints_1[j][1]
+            pos_1.pose.position.z = setpoints_1[j][2]
 
-            local_vel_pub_1.publish(pos_1)
+            local_pos_pub_1.publish(pos_1)
             # local_vel_pub.publish(vel)
 
             if reached == True and flag1 == False:
                 print("Reached goal")
 
-                if i == len(setpoints_1):
+                if j == len(setpoints_1):
                     ofb_ctl.setAutoLandMode_1()
                     land_count += 1
                     print('Attempted to land c=', str(land_count))
                     break
 
                 else:
-                    i = i+1
+                    j = j+1
 
             if land_count % 2 == 0 and stateMt.check_gripper == 'True':
                 rospy.sleep(5)
