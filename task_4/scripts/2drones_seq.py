@@ -638,9 +638,9 @@ def drone_1():
             # dummy_points()
             ofb_ctl.offboard_set_mode_1()
 
-            pos_1.pose.position.x = setpoints_1[i][0]
-            pos_1.pose.position.y = setpoints_1[i][1]
-            pos_1.pose.position.z = setpoints_1[i][2]
+            pos_1.pose.position.x = setpoints_1[j][0]
+            pos_1.pose.position.y = setpoints_1[j][1]
+            pos_1.pose.position.z = setpoints_1[j][2]
 
             local_vel_pub_1.publish(pos_1)
             # local_vel_pub.publish(vel)
