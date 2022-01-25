@@ -252,6 +252,8 @@ def main():
 
     land_count = 0  # for land count
     flag1 = False
+    previous_x_error=0
+    previous_y_error=0
 
 
 
@@ -265,8 +267,8 @@ def main():
         if len(img_proc.Detected_ArUco_markers) > 0:
             #print('Aruco marker detected')
             img_proc.aruco_thresh_bool = True
-            vel.twist.linear.x = (((img_proc.position_aruco_x - 200)*stateMt.local_pos.z)/600  - ((img_proc.position_aruco_x - 200)- previous_x_error)/2  )                         
-            vel.twist.linear.y = -(((   (img_proc.position_aruco_y - (200 + 80/stateMt.local_pos.z)   )*stateMt.local_pos.z)/600) - (img_proc.position_aruco_y - (200 + 80/stateMt.local_pos.z)- previous_x_error)/2  ) 
+            vel.twist.linear.x = (((img_proc.position_aruco_x - 200)*stateMt.local_pos.z)/600  - ((img_proc.position_aruco_x - 200)- previous_x_error)/40)                         
+            vel.twist.linear.y = -(((   (img_proc.position_aruco_y - (200 + 80/stateMt.local_pos.z)   )*stateMt.local_pos.z)/600) - (img_proc.position_aruco_y - (200 + 80/stateMt.local_pos.z)- previous_y_error)/40) 
             print('Box detected, the x and y velocities are:',vel.twist.linear.x, vel.twist.linear.y)
             vel.twist.linear.z = 0
             #local_vel_pub.publish(vel)
