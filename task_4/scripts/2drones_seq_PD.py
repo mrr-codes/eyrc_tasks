@@ -176,7 +176,6 @@ class image_processing:
         self.position_aruco_y = 1000
         self.aruco_thresh_bool = False
         self.box_setpoint = list()
-        self.pixel_to_meter_ratio = 0
         self.Detected_ArUco_markers = []
 
     def detect_ArUco(self, img):
@@ -199,10 +198,6 @@ class image_processing:
         tl = np_arr[0, 0]
         tr = np_arr[0, 1]
         br = np_arr[0, 2]
-        #bl = np_arr[0, 3]
-
-        pixel_gap = abs(tl[0]-tr[0])
-        self.pixel_to_meter_ratio = 0.23/pixel_gap
 
         self.ctr = [(tl[0]+br[0])/2, (tl[1]+br[1])/2]
         return self.ctr
@@ -372,7 +367,7 @@ def drone_0():
 
             #print('error to image:', img_proc.distance_x, img_proc.distance_y)
 
-            if 0 < (img_proc.position_aruco_x-200) < 10 and 0 < abs(-img_proc.position_aruco_y + 225) < 10:
+            if 0 < (img_proc.position_aruco_x-200) < 10 and 0 < (-img_proc.position_aruco_y + 225) < 10:
 
                 flag1 = True
 
@@ -411,8 +406,7 @@ def drone_0():
                 local_vel_pub_0.publish(vel_0)
 
             previous_x_error = img_proc.position_aruco_x - 200
-            previous_y_error = img_proc.position_aruco_y - \
-                (200 + 80/stateMt.local_pos_0.z)
+            previous_y_error = img_proc.position_aruco_y - (200 + 80/stateMt.local_pos_0.z)
 
         elif img_proc.aruco_thresh_bool == False:
             # dummy_points()
@@ -547,7 +541,7 @@ def drone_1():
 
             #print('error to image:', img_proc.distance_x, img_proc.distance_y)
 
-            if 0 < (img_proc.position_aruco_x-200) < 10 and 0 < abs(-img_proc.position_aruco_y + 225) < 10:
+            if 0 < (img_proc.position_aruco_x-200) < 10 and 0 < (-img_proc.position_aruco_y + 225) < 10:
 
                 flag1 = True
 
@@ -586,8 +580,7 @@ def drone_1():
                 local_vel_pub_1.publish(vel_1)
 
             previous_x_error = img_proc.position_aruco_x - 200
-            previous_y_error = img_proc.position_aruco_y - \
-                (200 + 80/stateMt.local_pos_1.z)
+            previous_y_error = img_proc.position_aruco_y - (200 + 80/stateMt.local_pos_1.z)
 
         elif img_proc.aruco_thresh_bool == False:
             # dummy_points()
