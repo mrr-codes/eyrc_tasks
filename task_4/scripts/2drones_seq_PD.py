@@ -172,8 +172,10 @@ class image_processing:
         self.img = np.empty([])
         self.bridge = CvBridge()
         self.eucl_dist = 400
-        self.position_aruco_x = 1000
-        self.position_aruco_y = 1000
+        self.position_aruco_x_0 = 1000
+        self.position_aruco_y_0 = 1000
+        self.position_aruco_x_1 = 1000
+        self.position_aruco_y_1 = 1000
         self.aruco_thresh_bool = False
         self.box_setpoint = list()
         self.Detected_ArUco_markers = []
@@ -213,11 +215,11 @@ class image_processing:
             self.Detected_ArUco_markers = self.detect_ArUco(self.img)
 
             for key in self.Detected_ArUco_markers.keys():
-                self.centre = self.calcuate_centre(
+                self.centre_0 = self.calcuate_centre(
                     self.Detected_ArUco_markers[key])
 
-                self.position_aruco_x = self.centre[0]
-                self.position_aruco_y = self.centre[1]
+                self.position_aruco_x_0 = self.centre_0[0]
+                self.position_aruco_y_0 = self.centre_0[1]
 
                 #print(self.distance_y_m, 'This is y distance error in meters')
                 '''print("distance is", self.eucl_dist,
@@ -232,17 +234,17 @@ class image_processing:
 
         try:
             self.img = self.bridge.imgmsg_to_cv2(data, 'bgr8')
-            img_2 = cv2.circle(self.img, (200, 200), radius=2,
+            img_2 = cv2.circle(self.img, (200, 225), radius=2,
                                color=(0, 0, 255), thickness=-1)
             cv2.imshow('check_frame_1', img_2)
             cv2.waitKey(1)
             self.Detected_ArUco_markers = self.detect_ArUco(self.img)
             for key in self.Detected_ArUco_markers.keys():
-                self.centre = self.calcuate_centre(
+                self.centre_1 = self.calcuate_centre(
                     self.Detected_ArUco_markers[key])
 
-                self.position_aruco_x = self.centre[0]
-                self.position_aruco_y = self.centre[1]
+                self.position_aruco_x_1 = self.centre_1[0]
+                self.position_aruco_y_1 = self.centre_1[1]
 
                 #print(self.distance_y_m, 'This is y distance error in meters')
                 '''print("distance is", self.eucl_dist,
@@ -269,7 +271,7 @@ def drone_0():
     rate = rospy.Rate(20.0)
 
     # Make the list of setpoints
-    setpoints_0 = [(0, 0, 3), (-1, 16, 3), (20, 16, 3), (15.7, -5.94, 3), (15.7, -5.94, 1.7), (-1, 24, 3), (60, 24, 3), (16.55, -5.94, 3), (16.55, -5.94, 1.7), (0, 0, 3)
+    setpoints_0 = [(0, 0, 3), (-1, 16, 3), (10, 16, 3), (15.7, -5.94, 3), (15.7, -5.94, 1.7), (-1, 24, 3), (60, 24, 3), (16.55, -5.94, 3), (16.55, -5.94, 1.7), (0, 0, 3)
                    ]  # List to setpoints
 
     # Similarly initialize other publishers
@@ -355,10 +357,10 @@ def drone_0():
         if len(img_proc.Detected_ArUco_markers) > 0:
             #print('Aruco marker detected')
             img_proc.aruco_thresh_bool = True
-            vel_0.twist.linear.x = (((img_proc.position_aruco_x - 200)*stateMt.local_pos_0.z)/600 - (
-                (img_proc.position_aruco_x - 200) - previous_x_error)/40)
-            vel_0.twist.linear.y = -((((img_proc.position_aruco_y - (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/600) - (
-                img_proc.position_aruco_y - (200 + 80/stateMt.local_pos_0.z) - previous_y_error)/40)
+            vel_0.twist.linear.x = (((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/600 - (
+                (img_proc.position_aruco_x_0 - 200) - previous_x_error)/40)
+            vel_0.twist.linear.y = -((((img_proc.position_aruco_y_0- (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/600) - (
+                img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z) - previous_y_error)/40)
             print('d0 Box detected, the x and y velocities are:',
                   vel_0.twist.linear.x, vel_0.twist.linear.y)
             vel_0.twist.linear.z = 0
@@ -367,7 +369,7 @@ def drone_0():
 
             #print('error to image:', img_proc.distance_x, img_proc.distance_y)
 
-            if 0 < (img_proc.position_aruco_x-200) < 10 and 0 < (-img_proc.position_aruco_y + 225) < 10:
+            if 0 < (img_proc.position_aruco_x_0-200) < 10 and 0 < (-img_proc.position_aruco_y_0 + 225) < 10:
 
                 flag1 = True
 
@@ -405,9 +407,8 @@ def drone_0():
             if flag1 == False and stateMt.local_pos_0.z > 2.5 and stateMt.check_gripper_0 == 'False':
                 local_vel_pub_0.publish(vel_0)
 
-            previous_x_error = img_proc.position_aruco_x - 200
-            previous_y_error = img_proc.position_aruco_y - \
-                (200 + 80/stateMt.local_pos_0.z)
+            previous_x_error = img_proc.position_aruco_x_0 - 200
+            previous_y_error = img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z)
 
         elif img_proc.aruco_thresh_bool == False:
             # dummy_points()
@@ -460,7 +461,7 @@ def drone_1():
                      Image, img_proc.image_callback_1)
     rate = rospy.Rate(20.0)
 
-    setpoints_1 = [(0, 0, 3), (-1, -12, 3), (35, -12, 3),
+    setpoints_1 = [(0, 0, 3), (-1, -12, 3), (18, -12, 3),
                    (58.35, 6.21, 3), (58.35, 6.21, 1.7), (-1, -32, 3), (10, -32, 3), (59.2, 6.21, 3), (59.2, 6.21, 1.7), (0, 0, 3)]
 
     pos_1 = PoseStamped()
@@ -531,10 +532,10 @@ def drone_1():
         if len(img_proc.Detected_ArUco_markers) > 0:
             #print('Aruco marker detected')
             img_proc.aruco_thresh_bool = True
-            vel_1.twist.linear.x = (((img_proc.position_aruco_x - 200)*stateMt.local_pos_1.z)/600 - (
-                (img_proc.position_aruco_x - 200) - previous_x_error)/40)
-            vel_1.twist.linear.y = -((((img_proc.position_aruco_y - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/600) - (
-                img_proc.position_aruco_y - (200 + 80/stateMt.local_pos_1.z) - previous_y_error)/40)
+            vel_1.twist.linear.x = (((img_proc.position_aruco_x_1 - 200)*stateMt.local_pos_1.z)/600 - (
+                (img_proc.position_aruco_x_1 - 200) - previous_x_error)/40)
+            vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/600) - (
+                img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z) - previous_y_error)/40)
             print('d1 Box detected, the x and y velocities are:',
                   vel_1.twist.linear.x, vel_1.twist.linear.y)
             vel_1.twist.linear.z = 0
@@ -542,7 +543,7 @@ def drone_1():
 
             #print('error to image:', img_proc.distance_x, img_proc.distance_y)
 
-            if 0 < (img_proc.position_aruco_x-200) < 10 and 0 < (-img_proc.position_aruco_y + 225) < 10:
+            if 0 < (img_proc.position_aruco_x_1-200) < 10 and 0 < (-img_proc.position_aruco_y_1 + 225) < 10:
 
                 flag1 = True
 
@@ -580,8 +581,8 @@ def drone_1():
             if flag1 == False and stateMt.local_pos_1.z > 2.5 and stateMt.check_gripper_1 == 'False':
                 local_vel_pub_1.publish(vel_1)
 
-            previous_x_error = img_proc.position_aruco_x - 200
-            previous_y_error = img_proc.position_aruco_y - \
+            previous_x_error = img_proc.position_aruco_x_1 - 200
+            previous_y_error = img_proc.position_aruco_y_1 - \
                 (200 + 80/stateMt.local_pos_1.z)
 
         elif img_proc.aruco_thresh_bool == False:
