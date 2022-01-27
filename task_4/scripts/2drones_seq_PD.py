@@ -100,7 +100,7 @@ class offboard_control:
         set_ModeService_0 = rospy.ServiceProxy(
             '/edrone0/mavros/set_mode', mavros_msgs.srv.SetMode)
         set_ModeService_0(custom_mode='AUTO.LAND')
-        print("inside autoland")
+        print("d0 inside autoland")
         # except rospy.ServiceException as e:
         #print ("service set_mode call failed: %s. Autoland Mode could not be set" % e)
 # --
@@ -112,7 +112,7 @@ class offboard_control:
             '/edrone1/mavros/set_mode', mavros_msgs.srv.SetMode)
         set_ModeService_1(custom_mode='AUTO.LAND')
 
-        print("inside autoland")
+        print("d1 inside autoland")
 
     def gripper_activate_0(self, grip_control):
         rospy.wait_for_service('/edrone0/activate_gripper')
@@ -122,8 +122,8 @@ class offboard_control:
 # --
 
     def gripper_activate_1(self, grip_control):
-        rospy.wait_for_service('/edrone0/activate_gripper')
-        gripper = rospy.ServiceProxy('/edrone0/activate_gripper', Gripper)
+        rospy.wait_for_service('/edrone1/activate_gripper')
+        gripper = rospy.ServiceProxy('/edrone1/activate_gripper', Gripper)
         gripper(grip_control)
         print("gripper_activated_function_1")
 
@@ -136,7 +136,7 @@ class stateMoniter:
 
         self.state_1 = State()
         self.pos_1 = PositionTarget()
-        self.local_pos_1 = Point(-1, 61, 0)
+        self.local_pos_1 = Point(0, 0, 0)
 
     def stateCb_0(self, msg):
         # Callback function for topic /mavros/state
@@ -158,10 +158,10 @@ class stateMoniter:
 
     # Create more callback functions for other subscribers
     def gripper_check_clbk_0(self, msg):
-        self.check_gripper = msg.data
+        self.check_gripper_0 = msg.data
 
     def gripper_check_clbk_1(self, msg):
-        self.check_gripper = msg.data
+        self.check_gripper_1 = msg.data
         # rospy.loginfo(self.check_gripper)
 
 
@@ -269,7 +269,7 @@ def drone_0():
     rate = rospy.Rate(20.0)
 
     # Make the list of setpoints
-    setpoints_0 = [(0, 0, 3), (-1, 16, 3), (10, 16, 3), (15.7, -5.94, 3), (15.7, -5.94, 1.7), (-1, 24, 3), (60, 24, 3), (16.55, -5.94, 3), (16.55, -5.94, 1.7), (0, 0, 3)
+    setpoints_0 = [(0, 0, 3), (-1, 16, 3), (20, 16, 3), (15.7, -5.94, 3), (15.7, -5.94, 1.7), (-1, 24, 3), (60, 24, 3), (16.55, -5.94, 3), (16.55, -5.94, 1.7), (0, 0, 3)
                    ]  # List to setpoints
 
     # Similarly initialize other publishers
@@ -337,7 +337,7 @@ def drone_0():
                         stateMt.local_pos_0.z))
         print('d0', np.linalg.norm(desired - pos))
 
-        return np.linalg.norm(desired - pos) < 0.1
+        return np.linalg.norm(desired - pos) < 0.2
 
     # Publish the setpoints
     land_count = 0  # for land count
@@ -382,7 +382,7 @@ def drone_0():
                 rospy.sleep(8)
                 print("d0 Gripping the box")
                 ofb_ctl.gripper_activate_0(True)
-                if stateMt.check_gripper == 'True':
+                if stateMt.check_gripper_0 == 'True':
                     print('d0 The box has been gripped')
                     land_count += 1
                 else:
@@ -402,11 +402,12 @@ def drone_0():
 
                 local_pos_pub_0.publish(pos_0)
 
-            if flag1 == False and stateMt.local_pos_0.z > 2.5 and stateMt.check_gripper == 'False':
+            if flag1 == False and stateMt.local_pos_0.z > 2.5 and stateMt.check_gripper_0 == 'False':
                 local_vel_pub_0.publish(vel_0)
 
             previous_x_error = img_proc.position_aruco_x - 200
-            previous_y_error = img_proc.position_aruco_y - (200 + 80/stateMt.local_pos_0.z)
+            previous_y_error = img_proc.position_aruco_y - \
+                (200 + 80/stateMt.local_pos_0.z)
 
         elif img_proc.aruco_thresh_bool == False:
             # dummy_points()
@@ -431,7 +432,7 @@ def drone_0():
                 else:
                     i = i+1
 
-            if land_count % 2 == 0 and stateMt.check_gripper == 'True':
+            if land_count % 2 == 0 and stateMt.check_gripper_0 == 'True':
                 rospy.sleep(5)
                 ofb_ctl.gripper_activate_0(False)
                 print("d0 Releasing box")
@@ -459,7 +460,7 @@ def drone_1():
                      Image, img_proc.image_callback_1)
     rate = rospy.Rate(20.0)
 
-    setpoints_1 = [(0, 0, 3), (-1, -12, 3), (18, -12, 3),
+    setpoints_1 = [(0, 0, 3), (-1, -12, 3), (35, -12, 3),
                    (58.35, 6.21, 3), (58.35, 6.21, 1.7), (-1, -32, 3), (10, -32, 3), (59.2, 6.21, 3), (59.2, 6.21, 1.7), (0, 0, 3)]
 
     pos_1 = PoseStamped()
@@ -502,7 +503,7 @@ def drone_1():
                         stateMt.local_pos_1.z))
         print('d1', np.linalg.norm(desired - pos))
 
-        return np.linalg.norm(desired - pos) < 0.1
+        return np.linalg.norm(desired - pos) < 0.2
 
     # Publish the setpoints
     land_count = 0  # for land count
@@ -556,7 +557,7 @@ def drone_1():
                 rospy.sleep(8)
                 print("d1 Gripping the box")
                 ofb_ctl.gripper_activate_1(True)
-                if stateMt.check_gripper == 'True':
+                if stateMt.check_gripper_1 == 'True':
                     print('d1 The box has been gripped')
                     land_count += 1
                 else:
@@ -576,11 +577,12 @@ def drone_1():
 
                 local_pos_pub_1.publish(pos_1)
 
-            if flag1 == False and stateMt.local_pos_1.z > 2.5 and stateMt.check_gripper == 'False':
+            if flag1 == False and stateMt.local_pos_1.z > 2.5 and stateMt.check_gripper_1 == 'False':
                 local_vel_pub_1.publish(vel_1)
 
             previous_x_error = img_proc.position_aruco_x - 200
-            previous_y_error = img_proc.position_aruco_y - (200 + 80/stateMt.local_pos_1.z)
+            previous_y_error = img_proc.position_aruco_y - \
+                (200 + 80/stateMt.local_pos_1.z)
 
         elif img_proc.aruco_thresh_bool == False:
             # dummy_points()
@@ -605,7 +607,7 @@ def drone_1():
                 else:
                     i = i+1
 
-            if land_count % 2 == 0 and stateMt.check_gripper == 'True':
+            if land_count % 2 == 0 and stateMt.check_gripper_1 == 'True':
                 rospy.sleep(5)
                 ofb_ctl.gripper_activate_1(False)
                 print("d1 Releasing box")
