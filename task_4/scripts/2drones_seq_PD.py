@@ -136,7 +136,7 @@ class stateMoniter:
 
         self.state_1 = State()
         self.pos_1 = PositionTarget()
-        self.local_pos_1 = Point(-1, 61, 0)
+        self.local_pos_1 = Point(0, 0, 0)
 
     def stateCb_0(self, msg):
         # Callback function for topic /mavros/state
@@ -620,7 +620,6 @@ if __name__ == '__main__':
         p1.start()
         p2 = Process(target=drone_1)
         p2.start()
-    # This is where I had to add the join() function.
         p1.join()
         p2.join()
     except rospy.ROSInterruptException:
