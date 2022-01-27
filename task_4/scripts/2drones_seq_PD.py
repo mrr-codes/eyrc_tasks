@@ -622,7 +622,6 @@ if __name__ == '__main__':
         p1.start()
         p2 = Process(target=drone_1)
         p2.start()
-    # This is where I had to add the join() function.
         p1.join()
         p2.join()
     except rospy.ROSInterruptException:
