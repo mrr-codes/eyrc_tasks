@@ -38,6 +38,7 @@ class offboard_control:
         except rospy.ServiceException as e:
             print("Service param failed %s" % e)
     '''
+
     def setArm_0(self):
         # Calling to /mavros/cmd/arming to arm the drone and print fail message on failure
         # Waiting untill the service starts
@@ -270,7 +271,7 @@ def drone_0():
     rate = rospy.Rate(20.0)
 
     # Make the list of setpoints
-    setpoints_0 = [(0, 0, 3), (-1, 16, 3), (15.7, -5.94, 3), (15.7, -5.94, 2), (15.7, -50.94, 3), (-1, 24, 3),(16.55, -5.94, 3), (16.55, -5.94, 2), (16.55, -5.94, 3), (0, 0, 3)
+    setpoints_0 = [(0, 0, 3), (-1, 16, 3), (15.7, -5.94, 3), (15.7, -5.94, 2), (15.7, -5.94, 3), (-1, 24, 3), (16.55, -5.94, 3), (16.55, -5.94, 2), (16.55, -5.94, 3), (0, 0, 3)
                    ]  # List to setpoints
 
     # Similarly initialize other publishers
@@ -321,6 +322,7 @@ def drone_0():
         print("d0 Armed!!")
     arm_0()
     # Switching the state to auto mode
+
     def offboard_0():
         while not stateMt.state_0.mode == "OFFBOARD":
             ofb_ctl.offboard_set_mode_0()
@@ -379,7 +381,6 @@ def drone_0():
             if 0 < (img_proc.position_aruco_x_0-200) < 10 and 0 < (-img_proc.position_aruco_y_0 + 225) < 10:
 
                 flag1 = True
-                 
 
                 img_proc.box_setpoint = [
                     stateMt.local_pos_0.x, stateMt.local_pos_0.y]
@@ -427,22 +428,19 @@ def drone_0():
             pos_0.pose.position.y = setpoints_0[i][1]
             pos_0.pose.position.z = setpoints_0[i][2]
 
-            #local_pos_pub_0.publish(pos_0)
+            # local_pos_pub_0.publish(pos_0)
             # local_vel_pub.publish(vel)
-            if reached == True and ( setpoints_0[i][1] !=0   and  abs(setpoints_0[i][1]) % 4 == 0 ):
-                    vel_0.twist.linear.x = 3
-                    vel_0.twist.linear.y = 0
-                    vel_0.twist.linear.z = 0
+            if reached == True and (setpoints_0[i][1] != 0 and abs(setpoints_0[i][1]) % 4 == 0):
+                vel_0.twist.linear.x = 3
+                vel_0.twist.linear.y = 0
+                vel_0.twist.linear.z = 0
 
-                    flag_flip_pos_vol = True                           #have to turn it false in aruco detected
-                 
-
+                flag_flip_pos_vol = True  # have to turn it false in aruco detected
 
             if flag_flip_pos_vol == True:
                 local_vel_pub_0.publish(vel_0)
 
-
-            else: 
+            else:
                 local_pos_pub_0.publish(pos_0)
             if reached == True and flag1 == False:
                 print("d0 Reached goal")
@@ -486,7 +484,7 @@ def drone_1():
     rate = rospy.Rate(20.0)
 
     setpoints_1 = [(0, 0, 3), (-1, -12, 3),
-                   (65,0,3), (58.35, 6.21, 2), (65, 0, 3), (-1, -32, 3), (65, 0, 3), (59.2, 6.21, 2), (65, 0, 3), (0, 0, 3)]
+                   (65, 0, 3), (58.35, 6.21, 2), (65, 0, 3), (-1, -32, 3), (65, 0, 3), (59.2, 6.21, 2), (65, 0, 3), (0, 0, 3)]
 
     pos_1 = PoseStamped()
     pos_1.pose.position.x = 0
@@ -560,9 +558,8 @@ def drone_1():
         if len(img_proc.Detected_ArUco_markers) > 0 and box_dropped == False:
             #print('Aruco marker detected')
 
-
             flag_flip_pos_vol = False
-            
+
             img_proc.aruco_thresh_bool = True
             vel_1.twist.linear.x = (((img_proc.position_aruco_x_1 - 200)*stateMt.local_pos_1.z)/600 - (
                 (img_proc.position_aruco_x_1 - 200) - previous_x_error)/40)
@@ -584,7 +581,7 @@ def drone_1():
                 print('d1 Box is at ', img_proc.box_setpoint)
 
                 print('d1 In landing loop')
-                #rospy.sleep(5)
+                # rospy.sleep(5)
                 ofb_ctl.setAutoLandMode_1()
                 print('d1 Attempted to land c=', str(land_count))
                 rospy.sleep(8)
@@ -617,41 +614,26 @@ def drone_1():
             previous_y_error = img_proc.position_aruco_y_1 - \
                 (200 + 80/stateMt.local_pos_1.z)
 
-
-
-
-
-
-
-
-
         elif img_proc.aruco_thresh_bool == False:
             # dummy_points()
             ofb_ctl.offboard_set_mode_1()
 
-
-            
             pos_1.pose.position.x = setpoints_1[i][0]
             pos_1.pose.position.y = setpoints_1[i][1]
             pos_1.pose.position.z = setpoints_1[i][2]
 
+            if reached == True and (setpoints_1[i][1] != 0 and abs(setpoints_1[i][1]) % 4 == 0):
+                vel_1.twist.linear.x = 3
+                vel_1.twist.linear.y = 0
+                vel_1.twist.linear.z = 0
 
-            if reached == True and ( setpoints_1[i][1] !=0   and  abs(setpoints_1[i][1]) % 4 == 0 ):
-                    vel_1.twist.linear.x = 3
-                    vel_1.twist.linear.y = 0
-                    vel_1.twist.linear.z = 0
-
-                    flag_flip_pos_vol = True                           #have to turn it false in aruco detected
-                 
-
+                flag_flip_pos_vol = True  # have to turn it false in aruco detected
 
             if flag_flip_pos_vol == True:
                 local_vel_pub_1.publish(vel_1)
 
-
-            else: 
+            else:
                 local_pos_pub_1.publish(pos_1)
-
 
             if reached == True and flag1 == False:
                 print("d1 Reached goal")
