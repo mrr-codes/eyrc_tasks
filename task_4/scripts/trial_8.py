@@ -435,7 +435,7 @@ def drone_0():
             if reached == True and flag1 == False:
                 print("d0 Reached goal")
 
-                if i == len(setpoints_0-1):
+                if i == (len(setpoints_0)-1):
                     ofb_ctl.setAutoLandMode_0()
                     land_count += 1
                     print('d0 Attempted to land c=', str(land_count))
