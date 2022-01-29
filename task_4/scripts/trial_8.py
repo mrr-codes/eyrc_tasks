@@ -434,7 +434,7 @@ def drone_0():
             if reached == True and flag1 == False:
                 print("d0 Reached goal")
 
-                if i == len(setpoints_0):
+                if i == len(setpoints_0-1):
                     ofb_ctl.setAutoLandMode_0()
                     land_count += 1
                     print('d0 Attempted to land c=', str(land_count))
@@ -653,7 +653,7 @@ def drone_1():
                     i = i+1
                     print(i)
 
-            if i == 6 or i == 10:
+            if i == 6 or i == 11:
                 rospy.sleep(5)
                 ofb_ctl.gripper_activate_1(False)
                 box_dropped = True
