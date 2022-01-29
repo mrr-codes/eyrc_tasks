@@ -271,13 +271,13 @@ def main():
             #print('Aruco marker detected')
             img_proc.aruco_thresh_bool = True
             vel.twist.linear.x = (((img_proc.position_aruco_x - 200)*stateMt.local_pos.z)/600  - ((img_proc.position_aruco_x - 200)- previous_x_error)/40)                      
-            vel.twist.linear.y = -(((   (img_proc.position_aruco_y - (225)   )*stateMt.local_pos.z)/600) - (img_proc.position_aruco_y - (225)- previous_y_error)/40) 
+            vel.twist.linear.y = -(((   (img_proc.position_aruco_y - (200 + 80/stateMt.local_pos.z)   )*stateMt.local_pos.z)/600) - (img_proc.position_aruco_y - (200 + 80/stateMt.local_pos.z)- previous_y_error)/40) 
             print('Box detected, the x and y velocities are:',vel.twist.linear.x, vel.twist.linear.y)
             vel.twist.linear.z = 0
             #local_vel_pub.publish(vel)
 
 
-            if 0<(img_proc.position_aruco_x-200)<10 and 0<(img_proc.position_aruco_y)<10: #and abs(img_proc.distance_y)<20
+            if 0<(img_proc.position_aruco_x-200)<10 and abs(img_proc.position_aruco_y)<10: #and abs(img_proc.distance_y)<20
 
                 print('In landing loop')
                 flag1 = True 
@@ -325,7 +325,7 @@ def main():
                 position_for_landing_y = stateMt.local_pos.y
 
             previous_x_error = img_proc.position_aruco_x - 200
-            previous_y_error = img_proc.position_aruco_y - (225)
+            previous_y_error = img_proc.position_aruco_y - (200 + 80/stateMt.local_pos.z)
 
 
 
