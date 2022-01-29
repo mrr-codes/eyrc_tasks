@@ -167,6 +167,7 @@ class image_processing:
         self.Detected_ArUco_markers_1 = []
         self.bcorner_0 = []
         self.bcorner_1 = []
+        self.tpctr = []
 
     def detect_ArUco(self, img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -190,6 +191,7 @@ class image_processing:
         br = np_arr[0, 2]
         self.bcorner_0 = br
         self.bcorner_1 = br
+        self.tpctr = [(tl[0]+tr[0])/2, (tl[1]+tr[1])/2]
         self.ctr = [(tl[0]+br[0])/2, (tl[1]+br[1])/2]
         return self.ctr
 
@@ -210,6 +212,8 @@ class image_processing:
                 self.position_aruco_x_0 = self.centre[0]
                 self.position_aruco_y_0 = self.centre[1]
                 self.bcorner_0 = self.bcorner_0
+                self.tpctr = self.tpctr
+
                 #print(self.distance_y_m, 'This is y distance error in meters')
                 '''print("distance is", self.eucl_dist,
                       self.distance_x_m, self.distance_y_m)'''
@@ -235,6 +239,7 @@ class image_processing:
                 self.position_aruco_x_1 = self.centre[0]
                 self.position_aruco_y_1 = self.centre[1]
                 self.bcorner_1 = self.bcorner_1
+                self.tpctr = self.tpctr
 
                 #print(self.distance_y_m, 'This is y distance error in meters')
                 '''print("distance is", self.eucl_dist,
@@ -261,7 +266,7 @@ def drone_0():
     rate = rospy.Rate(20.0)
 
     # Make the list of setpoints
-    setpoints_0 = [(0, 0, 3), (-1, 16, 3), (15.7, -5.94, 4), (15.7, -5.94, 4), (15.7, -5.94, 1.8), (15.7, -5.94, 4), (-1, 20, 3), (-1, 24, 3), (16.55, -5.94, 4), (16.55, -5.94, 4), (16.55, -5.94, 1.8), (16.55, -5.94, 4), (0, 0, 3)
+    setpoints_0 = [(0, 0, 3), (-1, 16, 3), (15.7, -5.94, 4), (15.7, -5.94, 4), (15.7, -5.94, 1.8), (15.7, -5.94, 4), (-1, 22, 3), (-1, 24, 3), (16.55, -5.94, 4), (16.55, -5.94, 4), (16.55, -5.94, 1.8), (16.55, -5.94, 4), (0, 0, 3)
                    ]  # List to setpoints
 
     # Similarly initialize other publishers
@@ -369,7 +374,7 @@ def drone_0():
 
             #print('error to image:', img_proc.distance_x, img_proc.distance_y)
 
-            if img_proc.bcorner_0[0] < (200) < img_proc.position_aruco_x_0 and img_proc.position_aruco_y_0 < (225) < img_proc.bcorner_0[1]:
+            if (img_proc.bcorner_0[0] < (200) < img_proc.tpctr[0]) and (img_proc.tpctr[1] < (225) < img_proc.bcorner_0[1]):
 
                 flag1 = True
 
@@ -480,7 +485,7 @@ def drone_1():
     rate = rospy.Rate(20.0)
 
     setpoints_1 = [(0, 0, 3), (-1, -12, 3),
-                   (58, 0, 3), (58, 3.7, 3), (58.35, 3.75, 1.8), (58.35, 3.75, 3), (-1, -28, 3), (-1, -32, 3), (58, 0, 3), (59, 0, 3), (59.2, 3.75, 1.8), (65, 0, 3), (0, 0, 3)]
+                   (58, 0, 3), (58, 3.7, 5), (58.35, 3.75, 1.8), (58.35, 3.75, 5), (-1, -30, 3), (-1, -32, 3), (58, 0, 3), (59, 0, 3), (59.2, 3.75, 1.8), (65, 0, 3), (0, 0, 3)]
 
     pos_1 = PoseStamped()
     pos_1.pose.position.x = 0
@@ -585,7 +590,7 @@ def drone_1():
 
             #print('error to image:', img_proc.distance_x, img_proc.distance_y)
 
-            if img_proc.bcorner_1[0] < (200) < img_proc.position_aruco_x_1 and img_proc.position_aruco_y_1 < (225) < img_proc.bcorner_1[1]:
+            if (img_proc.bcorner_0[0] < (200) < img_proc.tpctr[0]) and (img_proc.tpctr[1] < (225) < img_proc.bcorner_0[1]):
 
                 flag1 = True
 
