@@ -205,7 +205,8 @@ class image_processing:
             self.Detected_ArUco_markers_0 = self.detect_ArUco(self.img)
 
             for key in self.Detected_ArUco_markers_0.keys():
-                self.centre = self.calcuate_centre(self.Detected_ArUco_markers_0[key])
+                self.centre = self.calcuate_centre(
+                    self.Detected_ArUco_markers_0[key])
 
                 self.position_aruco_x_0 = self.centre[0]
                 self.position_aruco_y_0 = self.centre[1]
@@ -260,7 +261,7 @@ def drone_0():
     rate = rospy.Rate(20.0)
 
     # Make the list of setpoints
-    setpoints_0 = [(0, 0, 3), (-1, 16, 3), (15.7, -5.94, 4),(15.7, -5.94, 4), (15.7, -5.94, 1.8), (15.7, -5.94, 4), (-1, 24, 3), (16.55, -5.94, 4),(16.55, -5.94, 4), (16.55, -5.94, 1.8), (16.55, -5.94, 4), (0, 0, 3)
+    setpoints_0 = [(0, 0, 3), (-1, 16, 3), (15.7, -5.94, 4), (15.7, -5.94, 4), (15.7, -5.94, 1.8), (15.7, -5.94, 4), (-1, 24, 3), (16.55, -5.94, 4), (16.55, -5.94, 4), (16.55, -5.94, 1.8), (16.55, -5.94, 4), (0, 0, 3)
                    ]  # List to setpoints
 
     # Similarly initialize other publishers
@@ -348,7 +349,7 @@ def drone_0():
         # ofb_ctl.setArm_0()
         ofb_ctl.offboard_set_mode_0()
         reached = check_position_0()
-        if i == 7:
+        if i == 8:
             box_dropped = False
 
         if len(img_proc.Detected_ArUco_markers_0) > 0 and box_dropped == False:
@@ -367,7 +368,7 @@ def drone_0():
 
             #print('error to image:', img_proc.distance_x, img_proc.distance_y)
 
-            if img_proc.bcorner[0] < (200) < img_proc.position_aruco_x_0 and  img_proc.position_aruco_y_0 < (225) < img_proc.bcorner[1]:
+            if img_proc.bcorner[0] < (200) < img_proc.position_aruco_x_0 and img_proc.position_aruco_y_0 < (225) < img_proc.bcorner[1]:
 
                 flag1 = True
 
@@ -396,6 +397,7 @@ def drone_0():
                             stateMt.local_pos_0.y, 3)
                 setpoints_0.insert(i+1, setpoint)
                 i = i+1
+                print('d0 i increased to ', i, 'after re-arming')
                 print('d0 Setting flag1 to false again')
                 flag1 = False
                 # print(setpoints)
@@ -442,6 +444,7 @@ def drone_0():
 
                 else:
                     i = i+1
+                    print('d0 i increased to ', i, 'after reaching goal')
 
             if i == 6 or i == 11:
                 # rospy.sleep(5)
@@ -473,7 +476,7 @@ def drone_1():
     rate = rospy.Rate(20.0)
 
     setpoints_1 = [(0, 0, 3), (-1, -12, 3),
-                   (65, 0, 3),(65, 0, 3), (58.35, 6.21, 2), (65, 0, 3), (-1, -32, 3), (65, 0, 3), (59.2, 6.21, 2), (65, 0, 3), (0, 0, 3)]
+                   (65, 0, 3), (65, 0, 3), (58.35, 6.21, 2), (65, 0, 3), (-1, -32, 3), (65, 0, 3), (59.2, 6.21, 2), (65, 0, 3), (0, 0, 3)]
 
     pos_1 = PoseStamped()
     pos_1.pose.position.x = 0
@@ -606,6 +609,7 @@ def drone_1():
                             stateMt.local_pos_1.y, 3)
                 setpoints_1.insert(i+1, setpoint)
                 i = i+1
+                print('d1 i increased to ', i, 'after re-arming')
                 print('d1 Setting flag1 to false again')
                 flag1 = False
                 # print(setpoints)
@@ -651,7 +655,7 @@ def drone_1():
 
                 else:
                     i = i+1
-                    print(i)
+                    print('d1 i increased to ', i, 'after reaching goal')
 
             if i == 6 or i == 11:
                 rospy.sleep(5)
