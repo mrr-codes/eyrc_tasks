@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 
-from cv2 import cornerSubPix
 import rospy
 from geometry_msgs.msg import *
 from mavros_msgs.msg import *
