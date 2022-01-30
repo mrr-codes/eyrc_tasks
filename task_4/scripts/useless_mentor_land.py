@@ -266,7 +266,7 @@ def drone_0():
     rate = rospy.Rate(20.0)
 
     # Make the list of setpoints
-    setpoints_0 = [(0, 0, 3),(0,13,3), (-1, 16, 3), (17.4, -5.94, 4), (17.4, -5.94, 4), (17.4, -5.94, 1.8), (17.4, -5.94, 4), (-1, 22, 3), (-1, 24, 3), (16.55, -5.94, 4), (16.55, -5.94, 4), (16.55, -5.94, 1.8), (16.55, -5.94, 4), (0, 0, 3)
+    setpoints_0 = [(0, 0, 3), (0, 13, 3), (-1, 16, 3), (17.4, -5.94, 4), (17.4, -5.94, 4), (17.4, -5.94, 1.85), (17.4, -5.94, 4), (-1, 22, 3), (-1, 24, 3), (16.55, -5.94, 4), (16.55, -5.94, 4), (16.55, -5.94, 1.85), (16.55, -5.94, 4), (0, 0, 3)
                    ]  # List to setpoints
 
     # Similarly initialize other publishers
@@ -356,7 +356,7 @@ def drone_0():
         # ofb_ctl.setArm_0()
         ofb_ctl.offboard_set_mode_0()
         reached = check_position_0()
-        if  i == 9:
+        if i == 9:
             box_dropped = False
 
         if len(img_proc.Detected_ArUco_markers_0) > 0 and box_dropped == False:
@@ -372,13 +372,13 @@ def drone_0():
                   vel_0.twist.linear.x, vel_0.twist.linear.y)
             vel_0.twist.linear.z = 0
 
-            #local_vel_pub_0.publish(vel_0)
+            # local_vel_pub_0.publish(vel_0)
 
             #print('error to image:', img_proc.distance_x, img_proc.distance_y)
 
-            if (flag_now_im_irritated == True) or ((img_proc.bcorner_0[0] < (200) < img_proc.tpctr[0]) and (img_proc.tpctr[1] < (225) < img_proc.bcorner_0[1])) :
+            if (flag_now_im_irritated == True) or ((img_proc.bcorner_0[0] < (200) < img_proc.tpctr[0]) and (img_proc.tpctr[1] < (225) < img_proc.bcorner_0[1])):
 
-                flag_now_im_irritated == True
+                flag_now_im_irritated = True
                 if flag1 == False:
                     img_proc.box_setpoint = [
                         stateMt.local_pos_0.x, stateMt.local_pos_0.y]
@@ -391,7 +391,7 @@ def drone_0():
                 local_pos_pub_0.publish(pos_0)
                 #print('d0 In landing loop')
                 #rospy.sleep(2)  # %%%%##
-                if reached == True:
+                if stateMt.local_pos_0.z < 1.6:
                     ofb_ctl.setAutoLandMode_0()
                     print('d0 Attempted to land c=', str(land_count))
                     rospy.sleep(8)
@@ -421,7 +421,7 @@ def drone_0():
 
                     local_pos_pub_0.publish(pos_0)
 
-            if flag1 == False and stateMt.local_pos_0.z > 2.5 and stateMt.check_gripper_0 == 'False':
+            if flag1 == False and stateMt.local_pos_0.z > 1.5 and stateMt.check_gripper_0 == 'False':
                 local_vel_pub_0.publish(vel_0)
 
             previous_x_error = img_proc.position_aruco_x_0 - 200
@@ -596,13 +596,13 @@ def drone_1():
             print('d1 Box detected, the x and y velocities are:',
                   vel_1.twist.linear.x, vel_1.twist.linear.y)
             vel_1.twist.linear.z = 0
-            #local_vel_pub_1.publish(vel_1)
+            # local_vel_pub_1.publish(vel_1)
 
             #print('error to image:', img_proc.distance_x, img_proc.distance_y)
 
             if (flag_now_im_irritated == True) or ((img_proc.bcorner_0[0] < (200) < img_proc.tpctr[0]) and (img_proc.tpctr[1] < (225) < img_proc.bcorner_0[1])):
 
-                flag_now_im_irritated == True
+                flag_now_im_irritated = True
 
                 if flag1 == False:
                     img_proc.box_setpoint = [
@@ -614,8 +614,8 @@ def drone_1():
                 pos_1.pose.position.y = img_proc.box_setpoint[1]-0.1
                 pos_1.pose.position.z = 1.5
                 local_pos_pub_1.publish(pos_1)
-                
-                if reached == True:
+
+                if stateMt.local_pos_1.z < 1.6:
                     print('d1 In landing loop')
                     # rospy.sleep(5)
                     ofb_ctl.setAutoLandMode_1()
@@ -689,7 +689,7 @@ def drone_1():
                     print('d1 i increased to ', i, 'after reaching goal')
 
             if i == 6 or i == 13:
-                rospy.sleep(5)
+                # rospy.sleep(5)
                 ofb_ctl.gripper_activate_1(False)
                 box_dropped = True
                 print("d1 Releasing box")
