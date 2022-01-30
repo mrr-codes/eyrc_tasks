@@ -421,7 +421,7 @@ def drone_0():
 
                     local_pos_pub_0.publish(pos_0)
 
-            if flag1 == False and stateMt.local_pos_0.z > 1.5 and stateMt.check_gripper_0 == 'False':
+            if flag1 == False and stateMt.local_pos_0.z > 2.5 and stateMt.check_gripper_0 == 'False':
                 local_vel_pub_0.publish(vel_0)
 
             previous_x_error = img_proc.position_aruco_x_0 - 200
