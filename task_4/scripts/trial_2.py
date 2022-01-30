@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-
-
 import rospy
 from geometry_msgs.msg import *
 from mavros_msgs.msg import *
@@ -24,25 +22,12 @@ class offboard_control:
         rospy.init_node('offboard_control', anonymous=True)
         # Waiting untill the service starts
 
-    def paramset():
-        rospy.wait_for_service('/edrone0/mavros/param/set')
-        # rospy.wait_for_service('/edrone1/mavros/param/set')
-        try:
-            change_mode_0 = rospy.ServiceProxy(
-                '/edrone0/mavros/param/set', mavros_msgs.srv.SetMode)
-            change_mode_0("COM_RCL_EXCEPT", 4)
-
-            # change_mode_1 = rospy.ServiceProxy(
-            #     '/edrone1/mavros/param/set', mavros_msgs.srv.SetMode)
-            # change_mode_1("COM_RCL_EXCEPT", 4)
-        except rospy.ServiceException as e:
-            print("Service param failed %s" % e)
-
     def setArm_0(self):
         # Calling to /mavros/cmd/arming to arm the drone and print fail message on failure
         # Waiting untill the service starts
         rospy.wait_for_service('/edrone0/mavros/cmd/arming')
         # rospy.wait_for_service('/edrone1/mavros/cmd/arming')
+        print('setArm_0 called')
         try:
             # Creating a proxy service for the rosservice named /mavros/cmd/arming for arming the drone
             armService_0 = rospy.ServiceProxy(
@@ -55,8 +40,9 @@ class offboard_control:
     def setArm_1(self):
         # Calling to /mavros/cmd/arming to arm the drone and print fail message on failure
         # Waiting untill the service starts
-        rospy.wait_for_service('/edrone0/mavros/cmd/arming')
+        rospy.wait_for_service('/edrone1/mavros/cmd/arming')
         # rospy.wait_for_service('/edrone1/mavros/cmd/arming')
+        print('setArm_1 called')
         try:
 
             armService_1 = rospy.ServiceProxy(
@@ -171,14 +157,17 @@ class image_processing:
 
         self.img = np.empty([])
         self.bridge = CvBridge()
-        self.eucl_dist = 400
         self.position_aruco_x_0 = 1000
         self.position_aruco_y_0 = 1000
         self.position_aruco_x_1 = 1000
         self.position_aruco_y_1 = 1000
         self.aruco_thresh_bool = False
         self.box_setpoint = list()
-        self.Detected_ArUco_markers = []
+        self.Detected_ArUco_markers_0 = []
+        self.Detected_ArUco_markers_1 = []
+        self.bcorner_0 = []
+        self.bcorner_1 = []
+        self.tpctr = []
 
     def detect_ArUco(self, img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -200,7 +189,9 @@ class image_processing:
         tl = np_arr[0, 0]
         tr = np_arr[0, 1]
         br = np_arr[0, 2]
-
+        self.bcorner_0 = br
+        self.bcorner_1 = br
+        self.tpctr = [(tl[0]+tr[0])/2, (tl[1]+tr[1])/2]
         self.ctr = [(tl[0]+br[0])/2, (tl[1]+br[1])/2]
         return self.ctr
 
@@ -212,14 +203,16 @@ class image_processing:
                                color=(0, 0, 255), thickness=-1)
             cv2.imshow('check_frame_0', img_2)
             cv2.waitKey(1)
-            self.Detected_ArUco_markers = self.detect_ArUco(self.img)
+            self.Detected_ArUco_markers_0 = self.detect_ArUco(self.img)
 
-            for key in self.Detected_ArUco_markers.keys():
+            for key in self.Detected_ArUco_markers_0.keys():
                 self.centre = self.calcuate_centre(
-                    self.Detected_ArUco_markers[key])
+                    self.Detected_ArUco_markers_0[key])
 
                 self.position_aruco_x_0 = self.centre[0]
                 self.position_aruco_y_0 = self.centre[1]
+                self.bcorner_0 = self.bcorner_0
+                self.tpctr = self.tpctr
 
                 #print(self.distance_y_m, 'This is y distance error in meters')
                 '''print("distance is", self.eucl_dist,
@@ -238,13 +231,15 @@ class image_processing:
                                color=(0, 0, 255), thickness=-1)
             cv2.imshow('check_frame_1', img_2)
             cv2.waitKey(1)
-            self.Detected_ArUco_markers = self.detect_ArUco(self.img)
-            for key in self.Detected_ArUco_markers.keys():
+            self.Detected_ArUco_markers_1 = self.detect_ArUco(self.img)
+            for key in self.Detected_ArUco_markers_1.keys():
                 self.centre = self.calcuate_centre(
-                    self.Detected_ArUco_markers[key])
+                    self.Detected_ArUco_markers_1[key])
 
                 self.position_aruco_x_1 = self.centre[0]
                 self.position_aruco_y_1 = self.centre[1]
+                self.bcorner_1 = self.bcorner_1
+                self.tpctr = self.tpctr
 
                 #print(self.distance_y_m, 'This is y distance error in meters')
                 '''print("distance is", self.eucl_dist,
@@ -271,7 +266,7 @@ def drone_0():
     rate = rospy.Rate(20.0)
 
     # Make the list of setpoints
-    setpoints_0 = [(0, 0, 3), (-1, 16, 3), (10, 16, 3), (15.7, -5.94, 3), (15.7, -5.94, 1.7), (-1, 24, 3), (23, 24, 3), (16.55, -5.94, 3), (16.55, -5.94, 1.7), (0, 0, 3)
+    setpoints_0 = [(0, 0, 3),(0,13,3), (-1, 16, 3), (17.4, -5.94, 4), (17.4, -5.94, 4), (17.4, -5.94, 1.8), (17.4, -5.94, 4), (-1, 22, 3), (-1, 24, 3), (16.55, -5.94, 4), (16.55, -5.94, 4), (16.55, -5.94, 1.8), (16.55, -5.94, 4), (0, 0, 3)
                    ]  # List to setpoints
 
     # Similarly initialize other publishers
@@ -310,21 +305,25 @@ def drone_0():
             print('d0 Sending dummy points')
             local_pos_pub_0.publish(pos_0)
             rate.sleep()
-
     dummy_points_0()
     # ofb_ctl.paramset
 
     # Arming the drone
-    while not stateMt.state_0.armed:
+    def arm_0():
+        while not stateMt.state_0.armed:
+            ofb_ctl.setArm_0()
+            rate.sleep()
+        print("d0 Armed!!")
         ofb_ctl.setArm_0()
-        rate.sleep()
-    print("d0 Armed!!")
-
+    arm_0()
     # Switching the state to auto mode
-    while not stateMt.state_0.mode == "OFFBOARD":
-        ofb_ctl.offboard_set_mode_0()
-        rate.sleep()
-    print("d0 OFFBOARD mode activated")
+
+    def offboard_0():
+        while not stateMt.state_0.mode == "OFFBOARD":
+            ofb_ctl.offboard_set_mode_0()
+            rate.sleep()
+        print("d0 OFFBOARD mode activated")
+    offboard_0()
     i = 0
 
     pos_0.pose.position.x = setpoints_0[i][0]
@@ -346,63 +345,79 @@ def drone_0():
     flag1 = False
     previous_x_error = 0
     previous_y_error = 0
+    box_dropped = False
+    flag_flip_pos_vol = False
 
+    ofb_ctl.setArm_0()
     while not rospy.is_shutdown():
 
         stateMt
-        ofb_ctl.setArm_0()
+        # ofb_ctl.setArm_0()
         ofb_ctl.offboard_set_mode_0()
         reached = check_position_0()
+        if  i == 9:
+            box_dropped = False
 
-        if len(img_proc.Detected_ArUco_markers) > 0:
+        if len(img_proc.Detected_ArUco_markers_0) > 0 and box_dropped == False:
             #print('Aruco marker detected')
+            flag_flip_pos_vol = False
             img_proc.aruco_thresh_bool = True
-            vel_0.twist.linear.x = (((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/600 - (
-                (img_proc.position_aruco_x_0 - 200) - previous_x_error)/40)
-            vel_0.twist.linear.y = -((((img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/600) - (
+            # - ((img_proc.position_aruco_x_0 - 200) - previous_x_error)/40)
+            vel_0.twist.linear.x = (
+                ((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/550)
+            vel_0.twist.linear.y = -((((img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/500) - (
                 img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z) - previous_y_error)/40)
             print('d0 Box detected, the x and y velocities are:',
                   vel_0.twist.linear.x, vel_0.twist.linear.y)
             vel_0.twist.linear.z = 0
 
-            # *#local_vel_pub_0.publish(vel_0)
+            #local_vel_pub_0.publish(vel_0)
 
             #print('error to image:', img_proc.distance_x, img_proc.distance_y)
 
-            if 0 < (img_proc.position_aruco_x_0-200) < 10 and 0 < (-img_proc.position_aruco_y_0 + 225) < 10:
+            if (img_proc.bcorner_0[0] < (200) < img_proc.tpctr[0]) and (img_proc.tpctr[1] < (225) < img_proc.bcorner_0[1]):
+
+                
+                if flag1 == False:
+                    img_proc.box_setpoint = [
+                        stateMt.local_pos_0.x, stateMt.local_pos_0.y]
 
                 flag1 = True
-
-                img_proc.box_setpoint = [
-                    stateMt.local_pos_0.x, stateMt.local_pos_0.y]
                 print('d0 Box is at ', img_proc.box_setpoint)
-
-                print('d0 In landing loop')
-                rospy.sleep(5)
-                ofb_ctl.setAutoLandMode_0()
-                print('d0 Attempted to land c=', str(land_count))
-                rospy.sleep(8)
-                print("d0 Gripping the box")
-                ofb_ctl.gripper_activate_0(True)
-                if stateMt.check_gripper_0 == 'True':
-                    print('d0 The box has been gripped')
-                    land_count += 1
-                else:
-                    print('d0 The box can not be gripped')
-
-                img_proc.aruco_thresh_bool = False
-                dummy_points_0()
-                ofb_ctl.setArm_0()
-                ofb_ctl.offboard_set_mode_0()
-                setpoint = (stateMt.local_pos_0.x,
-                            stateMt.local_pos_0.y, 3)
-                setpoints_0.insert(i+1, setpoint)
-                i = i+1
-                print('d0 Setting flag1 to false again')
-                flag1 = False
-                # print(setpoints)
-
+                pos_0.pose.position.x = img_proc.box_setpoint[0]
+                pos_0.pose.position.y = img_proc.box_setpoint[1]
+                pos_0.pose.position.z = 1.5
                 local_pos_pub_0.publish(pos_0)
+                #print('d0 In landing loop')
+                #rospy.sleep(2)  # %%%%##
+                if reached == True:
+                    ofb_ctl.setAutoLandMode_0()
+                    print('d0 Attempted to land c=', str(land_count))
+                    rospy.sleep(8)
+                    print("d0 Gripping the box")
+                    ofb_ctl.gripper_activate_0(True)
+                    if stateMt.check_gripper_0 == 'True':
+                        print('d0 The box has been gripped')
+                        land_count += 1
+                        box_dropped = True
+                    else:
+                        print('d0 The box can not be gripped')
+
+                    img_proc.aruco_thresh_bool = False
+                    dummy_points_0()
+                    arm_0()
+                    ofb_ctl.setArm_0()
+                    offboard_0()
+                    setpoint = (stateMt.local_pos_0.x,
+                                stateMt.local_pos_0.y, 3)
+                    setpoints_0.insert(i+1, setpoint)
+                    i = i+1
+                    print('d0 i increased to ', i, 'after re-arming')
+                    print('d0 Setting flag1 to false again')
+                    flag1 = False
+                    # print(setpoints)
+
+                    local_pos_pub_0.publish(pos_0)
 
             if flag1 == False and stateMt.local_pos_0.z > 2.5 and stateMt.check_gripper_0 == 'False':
                 local_vel_pub_0.publish(vel_0)
@@ -419,13 +434,24 @@ def drone_0():
             pos_0.pose.position.y = setpoints_0[i][1]
             pos_0.pose.position.z = setpoints_0[i][2]
 
-            local_pos_pub_0.publish(pos_0)
+            # local_pos_pub_0.publish(pos_0)
             # local_vel_pub.publish(vel)
+            if reached == True and (setpoints_0[i][1] != 0 and abs(setpoints_0[i][1]) % 4 == 0):
+                vel_0.twist.linear.x = 3
+                vel_0.twist.linear.y = 0
+                vel_0.twist.linear.z = 0
 
+                flag_flip_pos_vol = True  # have to turn it false in aruco detected
+
+            if flag_flip_pos_vol == True:
+                local_vel_pub_0.publish(vel_0)
+
+            else:
+                local_pos_pub_0.publish(pos_0)
             if reached == True and flag1 == False:
                 print("d0 Reached goal")
 
-                if i == len(setpoints_0):
+                if i == (len(setpoints_0)-1):
                     ofb_ctl.setAutoLandMode_0()
                     land_count += 1
                     print('d0 Attempted to land c=', str(land_count))
@@ -433,10 +459,12 @@ def drone_0():
 
                 else:
                     i = i+1
+                    print('d0 i increased to ', i, 'after reaching goal')
 
-            if land_count % 2 == 0 and stateMt.check_gripper_0 == 'True':
-                rospy.sleep(5)
+            if i == 7 or i == 14:  # ***###
+                # rospy.sleep(5)
                 ofb_ctl.gripper_activate_0(False)
+                box_dropped = True
                 print("d0 Releasing box")
 
         rate.sleep()
@@ -462,8 +490,8 @@ def drone_1():
                      Image, img_proc.image_callback_1)
     rate = rospy.Rate(20.0)
 
-    setpoints_1 = [(0, 0, 3), (-1, -12, 3), (17, -12, 3),
-                   (58.35, 6.21, 3), (58.35, 6.21, 1.7), (-1, -32, 3), (8, -32, 3), (59.2, 6.21, 3), (59.2, 6.21, 1.7), (0, 0, 3)]
+    setpoints_1 = [(0, 0, 3), (-1, -12, 3),
+                   (58, 0, 3), (58, 3.7, 5), (58.35, 3.75, 1.8), (58.35, 3.75, 5), (-1, -30, 3), (-1, -32, 3), (58, 0, 3), (59, 0, 3), (59.2, 3.75, 1.8), (65, 0, 3), (0, 0, 3)]
 
     pos_1 = PoseStamped()
     pos_1.pose.position.x = 0
@@ -482,6 +510,23 @@ def drone_1():
             local_pos_pub_1.publish(pos_1)
             rate.sleep()
     dummy_points_1()
+
+    def arm_1():
+        while not stateMt.state_1.armed:
+            ofb_ctl.setArm_1()
+            rate.sleep()
+        ofb_ctl.setArm_1()
+        print("d1 Armed!!")
+    arm_1()
+    # Switching the state to auto mode
+
+    def offboard_1():
+        while not stateMt.state_1.mode == "OFFBOARD":
+            ofb_ctl.offboard_set_mode_1()
+            rate.sleep()
+        print("d1 OFFBOARD mode activated")
+    offboard_1()
+
     while not stateMt.state_1.armed:
         ofb_ctl.setArm_1()
         rate.sleep()
@@ -512,7 +557,10 @@ def drone_1():
     flag1 = False
     previous_x_error = 0
     previous_y_error = 0
+    box_dropped = False
 
+    flag_flip_pos_vol = False
+    ofb_ctl.setArm_1()
     while not rospy.is_shutdown():
 
         '''
@@ -520,64 +568,79 @@ def drone_1():
         Step 2: Then wait till the drone reaches the setpoint, 
         Step 3: Check if the drone has reached the setpoint by checking the topic /mavros/local_position/pose 
         Step 4: Once the drone reaches the setpoint, publish the next setpoint , repeat the process until all the setpoints are done  
-
-
         Write your algorithm here
-
         '''
 
         stateMt
-        ofb_ctl.setArm_1()
+        # ofb_ctl.setArm_1()
         ofb_ctl.offboard_set_mode_1()
         reached = check_position_1()
-        if len(img_proc.Detected_ArUco_markers) > 0:
+
+        if i == 8:
+            box_dropped = False
+
+        if len(img_proc.Detected_ArUco_markers_1) > 0 and box_dropped == False:
             #print('Aruco marker detected')
+
+            flag_flip_pos_vol = False
+
             img_proc.aruco_thresh_bool = True
-            vel_1.twist.linear.x = (((img_proc.position_aruco_x_1 - 200)*stateMt.local_pos_1.z)/600 - (
-                (img_proc.position_aruco_x_1 - 200) - previous_x_error)/40)
-            vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/600) - (
+            # - ((img_proc.position_aruco_x_1 - 200) - previous_x_error)/40)
+            vel_1.twist.linear.x = (
+                ((img_proc.position_aruco_x_1 - 200)*stateMt.local_pos_1.z)/550)
+            vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/480) - (
                 img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z) - previous_y_error)/40)
             print('d1 Box detected, the x and y velocities are:',
                   vel_1.twist.linear.x, vel_1.twist.linear.y)
             vel_1.twist.linear.z = 0
-            # local_vel_pub_1.publish(vel_1)
+            #local_vel_pub_1.publish(vel_1)
 
             #print('error to image:', img_proc.distance_x, img_proc.distance_y)
 
-            if 0 < (img_proc.position_aruco_x_1-200) < 10 and 0 < (-img_proc.position_aruco_y_1 + 225) < 10:
+            if (img_proc.bcorner_0[0] < (200) < img_proc.tpctr[0]) and (img_proc.tpctr[1] < (225) < img_proc.bcorner_0[1]):
+
+                
+                if flag1 == False:
+                    img_proc.box_setpoint = [
+                        stateMt.local_pos_1.x, stateMt.local_pos_1.y]
 
                 flag1 = True
-
-                img_proc.box_setpoint = [
-                    stateMt.local_pos_1.x, stateMt.local_pos_1.y]
                 print('d1 Box is at ', img_proc.box_setpoint)
-
-                print('d1 In landing loop')
-                rospy.sleep(5)
-                ofb_ctl.setAutoLandMode_1()
-                print('d1 Attempted to land c=', str(land_count))
-                rospy.sleep(8)
-                print("d1 Gripping the box")
-                ofb_ctl.gripper_activate_1(True)
-                if stateMt.check_gripper_1 == 'True':
-                    print('d1 The box has been gripped')
-                    land_count += 1
-                else:
-                    print('d1 The box can not be gripped')
-
-                img_proc.aruco_thresh_bool = False
-                dummy_points_1()
-                ofb_ctl.setArm_1()
-                ofb_ctl.offboard_set_mode_1()
-                setpoint = (stateMt.local_pos_1.x,
-                            stateMt.local_pos_1.y, 3)
-                setpoints_1.insert(i+1, setpoint)
-                i = i+1
-                print('d1 Setting flag1 to false again')
-                flag1 = False
-                # print(setpoints)
-
+                pos_1.pose.position.x = img_proc.box_setpoint[0]
+                pos_1.pose.position.y = img_proc.box_setpoint[1]-0.1
+                pos_1.pose.position.z = 1.5
                 local_pos_pub_1.publish(pos_1)
+                
+                if reached = True:
+                    print('d1 In landing loop')
+                    # rospy.sleep(5)
+                    ofb_ctl.setAutoLandMode_1()
+                    print('d1 Attempted to land c=', str(land_count))
+                    rospy.sleep(8)
+                    print("d1 Gripping the box")
+                    ofb_ctl.gripper_activate_1(True)
+                    if stateMt.check_gripper_1 == 'True':
+                        print('d1 The box has been gripped')
+                        land_count += 1
+                        box_dropped = True
+                    else:
+                        print('d1 The box can not be gripped')
+
+                    img_proc.aruco_thresh_bool = False
+                    dummy_points_1()
+                    arm_1()
+                    ofb_ctl.setArm_1()
+                    offboard_1()
+                    setpoint = (stateMt.local_pos_1.x,
+                                stateMt.local_pos_1.y, 3)
+                    setpoints_1.insert(i+1, setpoint)
+                    i = i+1
+                    print('d1 i increased to ', i, 'after re-arming')
+                    print('d1 Setting flag1 to false again')
+                    flag1 = False
+                    # print(setpoints)
+
+                    local_pos_pub_1.publish(pos_1)
 
             if flag1 == False and stateMt.local_pos_1.z > 2.5 and stateMt.check_gripper_1 == 'False':
                 local_vel_pub_1.publish(vel_1)
@@ -594,13 +657,23 @@ def drone_1():
             pos_1.pose.position.y = setpoints_1[i][1]
             pos_1.pose.position.z = setpoints_1[i][2]
 
-            local_pos_pub_1.publish(pos_1)
-            # local_vel_pub.publish(vel)
+            if reached == True and (setpoints_1[i][1] != 0 and abs(setpoints_1[i][1]) % 4 == 0):
+                vel_1.twist.linear.x = 3
+                vel_1.twist.linear.y = 0
+                vel_1.twist.linear.z = 0
+
+                flag_flip_pos_vol = True  # have to turn it false in aruco detected
+
+            if flag_flip_pos_vol == True:
+                local_vel_pub_1.publish(vel_1)
+
+            else:
+                local_pos_pub_1.publish(pos_1)
 
             if reached == True and flag1 == False:
                 print("d1 Reached goal")
 
-                if i == len(setpoints_1):
+                if i == (len(setpoints_1)-1):
                     ofb_ctl.setAutoLandMode_1()
                     land_count += 1
                     print('d1 Attempted to land c=', str(land_count))
@@ -608,10 +681,12 @@ def drone_1():
 
                 else:
                     i = i+1
+                    print('d1 i increased to ', i, 'after reaching goal')
 
-            if land_count % 2 == 0 and stateMt.check_gripper_1 == 'True':
+            if i == 6 or i == 13:
                 rospy.sleep(5)
                 ofb_ctl.gripper_activate_1(False)
+                box_dropped = True
                 print("d1 Releasing box")
 
         rate.sleep()
