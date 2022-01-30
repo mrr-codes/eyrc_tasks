@@ -313,6 +313,7 @@ def drone_0():
         while not stateMt.state_0.armed:
             ofb_ctl.setArm_0()
             rate.sleep()
+        ofb_ctl.setArm_0()
         print("d0 Armed!!")
     arm_0()
     # Switching the state to auto mode
@@ -354,7 +355,8 @@ def drone_0():
         # ofb_ctl.setArm_0()
         ofb_ctl.offboard_set_mode_0()
         reached = check_position_0()
-        if i == 7:
+
+        if i == 8:
             box_dropped = False
 
         if len(img_proc.Detected_ArUco_markers_0) > 0 and box_dropped == False:
@@ -375,7 +377,6 @@ def drone_0():
             #print('error to image:', img_proc.distance_x, img_proc.distance_y)
 
             if (img_proc.bcorner_0[0] < (200) < img_proc.tpctr[0]) and (img_proc.tpctr[1] < (225) < img_proc.bcorner_0[1]):
-
                 flag1 = True
 
                 img_proc.box_setpoint = [
@@ -443,6 +444,7 @@ def drone_0():
 
             else:
                 local_pos_pub_0.publish(pos_0)
+
             if reached == True and flag1 == False:
                 print("d0 Reached goal")
 
@@ -469,6 +471,7 @@ def drone_1():
     stateMt = stateMoniter()
     ofb_ctl = offboard_control()
     img_proc = image_processing()
+
     local_pos_pub_1 = rospy.Publisher(
         '/edrone1/mavros/setpoint_position/local', PoseStamped, queue_size=10)
     local_vel_pub_1 = rospy.Publisher(
@@ -520,18 +523,19 @@ def drone_1():
             rate.sleep()
         print("d1 OFFBOARD mode activated")
     offboard_1()
+#------#
+    # while not stateMt.state_1.armed:
+    #     ofb_ctl.setArm_1()
+    #     rate.sleep()
+    # print("d1 Armed!!")
 
-    while not stateMt.state_1.armed:
-        ofb_ctl.setArm_1()
-        rate.sleep()
-    print("d1 Armed!!")
-
-    # Switching the state to auto mode
-    while not stateMt.state_1.mode == "OFFBOARD":
-        ofb_ctl.offboard_set_mode_1()
-        rate.sleep()
-    print("d1 OFFBOARD mode activated")
+    # # Switching the state to auto mode
+    # while not stateMt.state_1.mode == "OFFBOARD":
+    #     ofb_ctl.offboard_set_mode_1()
+    #     rate.sleep()
+    # print("d1 OFFBOARD mode activated")
     i = 0
+
     pos_1.pose.position.x = setpoints_1[i][0]
     pos_1.pose.position.y = setpoints_1[i][1]
     pos_1.pose.position.z = setpoints_1[i][2]
@@ -552,8 +556,8 @@ def drone_1():
     previous_x_error = 0
     previous_y_error = 0
     box_dropped = False
-
     flag_flip_pos_vol = False
+
     ofb_ctl.setArm_1()
     while not rospy.is_shutdown():
 
@@ -575,9 +579,7 @@ def drone_1():
 
         if len(img_proc.Detected_ArUco_markers_1) > 0 and box_dropped == False:
             #print('Aruco marker detected')
-
             flag_flip_pos_vol = False
-
             img_proc.aruco_thresh_bool = True
             # - ((img_proc.position_aruco_x_1 - 200) - previous_x_error)/40)
             vel_1.twist.linear.x = (
@@ -587,12 +589,12 @@ def drone_1():
             print('d1 Box detected, the x and y velocities are:',
                   vel_1.twist.linear.x, vel_1.twist.linear.y)
             vel_1.twist.linear.z = 0
+
             local_vel_pub_1.publish(vel_1)
 
             #print('error to image:', img_proc.distance_x, img_proc.distance_y)
 
             if (img_proc.bcorner_0[0] < (200) < img_proc.tpctr[0]) and (img_proc.tpctr[1] < (225) < img_proc.bcorner_0[1]):
-
                 flag1 = True
 
                 img_proc.box_setpoint = [
@@ -602,7 +604,7 @@ def drone_1():
                 pos_1.pose.position.y = img_proc.box_setpoint[1]
                 pos_1.pose.position.z = 0.4
                 local_pos_pub_1.publish(pos_1)
-                print('d1 In landing loop')
+                #print('d1 In landing loop')
                 # rospy.sleep(5)
                 ofb_ctl.setAutoLandMode_1()
                 print('d1 Attempted to land c=', str(land_count))
@@ -662,7 +664,7 @@ def drone_1():
             if reached == True and flag1 == False:
                 print("d1 Reached goal")
 
-                if i == len(setpoints_1):
+                if i == len(setpoints_1)-1:
                     ofb_ctl.setAutoLandMode_1()
                     land_count += 1
                     print('d1 Attempted to land c=', str(land_count))
