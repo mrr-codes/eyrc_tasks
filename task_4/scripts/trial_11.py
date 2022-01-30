@@ -266,7 +266,7 @@ def drone_0():
     rate = rospy.Rate(20.0)
 
     # Make the list of setpoints
-    setpoints_0 = [(0, 0, 3), (-1, 16, 3), (15.7, -5.94, 4), (15.7, -5.94, 4), (15.7, -5.94, 1.8), (15.7, -5.94, 4), (-1, 22, 3), (-1, 24, 3), (16.55, -5.94, 4), (16.55, -5.94, 4), (16.55, -5.94, 1.8), (16.55, -5.94, 4), (0, 0, 3)
+    setpoints_0 = [(0, 0, 3), (-1, 16, 3), (17.4, -5.94, 4), (17.4, -5.94, 4), (17.4, -5.94, 1.8), (17.4, -5.94, 4), (-1, 22, 3), (-1, 24, 3), (16.55, -5.94, 4), (16.55, -5.94, 4), (16.55, -5.94, 1.8), (16.55, -5.94, 4), (0, 0, 3)
                    ]  # List to setpoints
 
     # Similarly initialize other publishers
@@ -455,7 +455,7 @@ def drone_0():
                     i = i+1
                     print('d0 i increased to ', i, 'after reaching goal')
 
-            if i == 6 or i == 12:  # ***###
+            if i == 6 or i == 13:  # ***###
                 # rospy.sleep(5)
                 ofb_ctl.gripper_activate_0(False)
                 box_dropped = True
@@ -670,7 +670,7 @@ def drone_1():
                     i = i+1
                     print('d1 i increased to ', i, 'after reaching goal')
 
-            if i == 6 or i == 12:
+            if i == 6 or i == 13:
                 rospy.sleep(5)
                 ofb_ctl.gripper_activate_1(False)
                 box_dropped = True
