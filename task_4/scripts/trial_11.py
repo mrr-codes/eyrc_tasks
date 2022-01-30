@@ -395,6 +395,7 @@ def drone_0():
                 if stateMt.check_gripper_0 == 'True':
                     print('d0 The box has been gripped')
                     land_count += 1
+                    box_dropped = True
                 else:
                     print('d0 The box can not be gripped')
 
@@ -581,7 +582,7 @@ def drone_1():
             # - ((img_proc.position_aruco_x_1 - 200) - previous_x_error)/40)
             vel_1.twist.linear.x = (
                 ((img_proc.position_aruco_x_1 - 200)*stateMt.local_pos_1.z)/550)
-            vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/500) - (
+            vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/480) - (
                 img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z) - previous_y_error)/40)
             print('d1 Box detected, the x and y velocities are:',
                   vel_1.twist.linear.x, vel_1.twist.linear.y)
@@ -611,6 +612,7 @@ def drone_1():
                 if stateMt.check_gripper_1 == 'True':
                     print('d1 The box has been gripped')
                     land_count += 1
+                    box_dropped = True
                 else:
                     print('d1 The box can not be gripped')
 
