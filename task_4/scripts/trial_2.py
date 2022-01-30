@@ -347,6 +347,7 @@ def drone_0():
     previous_y_error = 0
     box_dropped = False
     flag_flip_pos_vol = False
+    flag_now_im_irritated = False
 
     ofb_ctl.setArm_0()
     while not rospy.is_shutdown():
@@ -375,9 +376,9 @@ def drone_0():
 
             #print('error to image:', img_proc.distance_x, img_proc.distance_y)
 
-            if (img_proc.bcorner_0[0] < (200) < img_proc.tpctr[0]) and (img_proc.tpctr[1] < (225) < img_proc.bcorner_0[1]):
+            if (flag_now_im_irritated == True) or ((img_proc.bcorner_0[0] < (200) < img_proc.tpctr[0]) and (img_proc.tpctr[1] < (225) < img_proc.bcorner_0[1])) :
 
-                
+                flag_now_im_irritated == True
                 if flag1 == False:
                     img_proc.box_setpoint = [
                         stateMt.local_pos_0.x, stateMt.local_pos_0.y]
@@ -415,6 +416,7 @@ def drone_0():
                     print('d0 i increased to ', i, 'after re-arming')
                     print('d0 Setting flag1 to false again')
                     flag1 = False
+                    flag_now_im_irritated = False
                     # print(setpoints)
 
                     local_pos_pub_0.publish(pos_0)
@@ -558,6 +560,7 @@ def drone_1():
     previous_x_error = 0
     previous_y_error = 0
     box_dropped = False
+    flag_now_im_irritated = False
 
     flag_flip_pos_vol = False
     ofb_ctl.setArm_1()
@@ -597,9 +600,10 @@ def drone_1():
 
             #print('error to image:', img_proc.distance_x, img_proc.distance_y)
 
-            if (img_proc.bcorner_0[0] < (200) < img_proc.tpctr[0]) and (img_proc.tpctr[1] < (225) < img_proc.bcorner_0[1]):
+            if (flag_now_im_irritated == True) or ((img_proc.bcorner_0[0] < (200) < img_proc.tpctr[0]) and (img_proc.tpctr[1] < (225) < img_proc.bcorner_0[1])):
 
-                
+                flag_now_im_irritated == True
+
                 if flag1 == False:
                     img_proc.box_setpoint = [
                         stateMt.local_pos_1.x, stateMt.local_pos_1.y]
@@ -611,7 +615,7 @@ def drone_1():
                 pos_1.pose.position.z = 1.5
                 local_pos_pub_1.publish(pos_1)
                 
-                if reached = True:
+                if reached == True:
                     print('d1 In landing loop')
                     # rospy.sleep(5)
                     ofb_ctl.setAutoLandMode_1()
@@ -638,6 +642,7 @@ def drone_1():
                     print('d1 i increased to ', i, 'after re-arming')
                     print('d1 Setting flag1 to false again')
                     flag1 = False
+                    flag_now_im_irritated = False
                     # print(setpoints)
 
                     local_pos_pub_1.publish(pos_1)
