@@ -266,8 +266,7 @@ def drone_0():
     rate = rospy.Rate(20.0)
 
     # Make the list of setpoints
-    setpoints_0 = [(0, 0, 3), (0, 13, 3), (-1, 16, 3), (17.4, -7.17, 4), (17.4, -7.17, 4), (17.4, -7.17, 1.8), (17.4, -7.17, 4),
-                   (-1, 18, 3), (-1, 24, 3), (16.55, -7.17, 4), (16.55, -7.17, 4), (16.55, -7.17, 1.8), (16.55, -7.17, 6), (0, 0, 3)]
+    setpoints_0 = [(0, 0, 3),(0,13,3), (-1, 16, 3), (17.4, -7.17, 4), (17.4, -7.17, 4), (17.4, -7.17, 1.85), (17.4, -7.17, 4), (-1, 18, 3), (-1, 24, 3), (16.55, -7.17, 4), (16.55, -7.17, 4), (16.55, -7.17, 1.8), (16.55, -7.17, 6), (0, 0, 3)]
   # List to setpoints
 
     # Similarly initialize other publishers
@@ -356,7 +355,7 @@ def drone_0():
         # ofb_ctl.setArm_0()
         ofb_ctl.offboard_set_mode_0()
         reached = check_position_0()
-        if i == 9:
+        if  i == 9:
             box_dropped = False
 
         if len(img_proc.Detected_ArUco_markers_0) > 0 and box_dropped == False:
@@ -367,12 +366,12 @@ def drone_0():
 
             vel_0.twist.linear.x = (
                 ((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/550)
-            if i == 9:
+            if  i==9:
                 vel_0.twist.linear.y = -((((img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/250) - (
-                    img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z) - previous_y_error)/40)-1
-            else:
+                img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z) - previous_y_error)/40)-1
+            else :
                 vel_0.twist.linear.y = -((((img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/250) - (
-                    img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z) - previous_y_error)/40)-0.1
+                img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z) - previous_y_error)/40)-0.1
             print('d0 Box detected, the x and y velocities are:',
                   vel_0.twist.linear.x, vel_0.twist.linear.y)
             vel_0.twist.linear.z = 0
