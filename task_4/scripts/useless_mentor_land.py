@@ -493,7 +493,7 @@ def drone_1():
     rate = rospy.Rate(20.0)
 
     setpoints_1 = [(0, 0, 3), (-1, -12, 3),
-                   (58, 0, 3), (58, 3.7, 5), (58.35, 3.75, 1.8), (58.35, 3.75, 5), (-1, -30, 3), (-1, -32, 3), (58, 0, 3), (59, 0, 3), (59.2, 3.75, 1.8), (65, 0, 3), (0, 0, 3)]
+                   (58, 0, 3), (58, 3.7, 5), (58.35, 3.75, 1.8), (58.35, 3.75, 5), (-1, -31, 3), (-1, -32, 3), (58, 0, 3), (59, 0, 3), (59.2, 3.75, 1.8), (65, 0, 3), (0, 0, 3)]
 
     pos_1 = PoseStamped()
     pos_1.pose.position.x = 0
@@ -591,7 +591,7 @@ def drone_1():
             # - ((img_proc.position_aruco_x_1 - 200) - previous_x_error)/40)
             vel_1.twist.linear.x = (
                 ((img_proc.position_aruco_x_1 - 200)*stateMt.local_pos_1.z)/550)
-            vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/480) - (
+            vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/490) - (
                 img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z) - previous_y_error)/40)
             print('d1 Box detected, the x and y velocities are:',
                   vel_1.twist.linear.x, vel_1.twist.linear.y)
