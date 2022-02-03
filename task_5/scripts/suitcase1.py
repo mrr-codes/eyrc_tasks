@@ -113,12 +113,6 @@ class offboard_control:
         gripper(grip_control)
         print("gripper_activated_function_1")
 
-    def calculate_row_start(self, row_no, drone_no):
-        if drone_no == 0:
-            return (0, 4*row_no, 3)
-        else:
-            return (0, 4*(row_no-15), 3)
-
 
 class stateMoniter:
     def __init__(self):
@@ -129,7 +123,9 @@ class stateMoniter:
         self.state_1 = State()
         self.pos_1 = PositionTarget()
         self.local_pos_1 = Point(0, 0, 0)
-        self.row_spwan = list()
+        self.row_spawn_sp0 = list()
+        self.row_spawn_sp1 = list()
+        self.spawn_count = 0
 
     def stateCb_0(self, msg):
         # Callback function for topic /mavros/state
@@ -158,7 +154,25 @@ class stateMoniter:
         # rospy.loginfo(self.check_gripper)
 
     def spawn_clbk(self, msg):
-        self.row_spwan.append(msg.data)
+        if self.spawn_count % 2 == 0:
+            self.row_spawn_sp0.append(self.calculate_row_start(msg.data, 0))
+
+        else:
+            self.row_spawn_sp1.append(self.calculate_row_start(msg.data, 1))
+        self.spawn_count += 1
+
+    def calculate_row_start(self, row_no, drone_no):
+        if drone_no == 0:
+            return (0, 4*row_no, 3)
+        else:
+            return (0, 4*(row_no-15), 4)
+
+    def calculate_truck_point(self, id):
+        if id == 1:
+            return (17.4, -7.17, 4)
+
+        else:
+            return (58, 3.7, 5)
 
 
 class image_processing:
@@ -276,8 +290,11 @@ def drone_0():
     rate = rospy.Rate(20.0)
 
     # Make the list of setpoints
-    setpoints_0 = [(0, 0, 3), (0, 13, 3), (-1, 16, 3), (17.4, -7.17, 4), (17.4, -7.17, 4), (17.4, -7.17, 1.8), (17.4, -7.17, 4),
-                   (-1, 18, 3), (-1, 24, 3), (16.55, -7.17, 4), (16.55, -7.17, 4), (16.55, -7.17, 1.8), (16.55, -7.17, 4), (0, 0, 3)]
+    # setpoints_0 = [(0, 0, 3), (0, 13, 3), (-1, 16, 3), (17.4, -7.17, 4), (17.4, -7.17, 4), (17.4, -7.17, 1.8), (17.4, -7.17, 4),
+    #                (-1, 18, 3), (-1, 24, 3), (16.55, -7.17, 4), (16.55, -7.17, 4), (16.55, -7.17, 1.8), (16.55, -7.17, 4), (0, 0, 3)]
+
+    setpoints_0 = [(0, 0, 3)]
+
   # List to setpoints
 
     # Similarly initialize other publishers
@@ -472,6 +489,9 @@ def drone_0():
                     break
 
                 else:
+                    setpoints_0.append(stateMt.row_spawn_sp1[k])
+                    setpoints_0.extend(--)
+
                     i = i+1
                     print('d0 i increased to ', i, 'after reaching goal')
 
