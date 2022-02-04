@@ -126,6 +126,14 @@ class stateMoniter:
         self.row_spawn_sp0 = list()
         self.row_spawn_sp1 = list()
         self.spawn_count = 0
+        self.blue_truck_count = 4
+        self.red_truck_count = 4
+
+        self.blue_truck = np.array([(13.85, -7.4, 1.7), (13.85, -6.17, 1.7), (13.85, -4.95, 1.7)], [(14.7, -7.4, 1.7), (14.7, -6.17, 1.7),
+                                   (14.7, -4.95, 1.7)], [(15.55, -7.4, 1.7), (15.55, -6.17, 1.7), (15.55, -4.95, 1.7)], [(16.4, -7.4, 1.7), (16.4, -6.17, 1.7), (16.4, -4.95, 1.7)])
+
+        self.red_truck = np.array([(56.5, 64.75, 1.7), (56.5, 65.98, 1.7), (56.5, 67.21, 1.7)], [(57.35, 64.75, 1.7), (57.35, 65.98, 1.7), (57.35, 67.21, 1.7)],
+                                  [(58.2, 64.75, 1.7), (58.2, 65.98, 1.7), (58.2, 67.21, 1.7)], [(59.05, 64.75, 1.7), (59.05, 65.98, 1.7), (59.05, 67.21, 1.7)],)
 
     def stateCb_0(self, msg):
         # Callback function for topic /mavros/state
@@ -153,6 +161,12 @@ class stateMoniter:
         self.check_gripper_1 = msg.data
         # rospy.loginfo(self.check_gripper)
 
+    def calculate_row_start(self, row_no, drone_no):
+        if drone_no == 0:
+            return (0, 4*row_no, 3)
+        else:
+            return (0, 4*(row_no-15), 4)
+
     def spawn_clbk(self, msg):
         if self.spawn_count % 2 == 0:
             self.row_spawn_sp0.append(self.calculate_row_start(msg.data, 0))
@@ -161,18 +175,29 @@ class stateMoniter:
             self.row_spawn_sp1.append(self.calculate_row_start(msg.data, 1))
         self.spawn_count += 1
 
-    def calculate_row_start(self, row_no, drone_no):
-        if drone_no == 0:
-            return (0, 4*row_no, 3)
-        else:
-            return (0, 4*(row_no-15), 4)
+    def calculate_truck_point(self, id, drone_no):
+        if id == 1:  # blue
+            self.blue_truck_count -= 1
+            if drone_no == 0:
+                final_pt = tuple(
+                    map(lambda i, j: i-j, self.blue_truck[0, 0], (-1, 1, 0)))
+                ########## res = tuple(map(lambda i, j: i - j, test_tup1, test_tup2))
+                return final_pt
+            else:
+                final_pt = tuple(
+                    map(lambda i, j: i-j, self.blue_truck[0, 0], (-61, 1, 0)))
+                return final_pt
 
-    def calculate_truck_point(self, id):
-        if id == 1:
-            return (17.4, -7.17, 4)
-
         else:
-            return (58, 3.7, 5)
+            self.red_truck_count += 1
+            if drone_no == 1:
+                final_pt = tuple(
+                    map(lambda i, j: i-j, self.red_truck[0, 0], (-1, 1, 0)))
+                return final_pt
+            else:
+                final_pt = tuple(
+                    map(lambda i, j: i-j, self.red_truck[0, 0], (-61, 1, 0)))
+                return final_pt
 
 
 class image_processing:
@@ -324,6 +349,7 @@ def drone_0():
 
     rospy.Subscriber("/edrone0/camera/image_raw",
                      Image, img_proc.image_callback_0)
+    # print(setpoints)
 
     rospy.Subscriber('/spawn_info', UInt8, stateMt.spawn_clbk)
 
@@ -378,6 +404,7 @@ def drone_0():
     vi = 0.1
     box_dropped = False
     flag_flip_pos_vol = False
+    k = 0
 
     ofb_ctl.setArm_0()
     while not rospy.is_shutdown():
@@ -386,6 +413,12 @@ def drone_0():
         # ofb_ctl.setArm_0()
         ofb_ctl.offboard_set_mode_0()
         reached = check_position_0()
+        if i == 8:
+            setpoints_0.clear()
+            i = 0
+            k += 1
+            setpoints_0.append(stateMt.row_spawn_sp0[k])
+
         if i == 9:
             box_dropped = False
             vi = 0.2
@@ -449,6 +482,7 @@ def drone_0():
                 # print(setpoints)
 
                 local_pos_pub_0.publish(pos_0)
+                setpoints_0.insert(TRUCK)
 
             if flag1 == False and stateMt.local_pos_0.z > 2.5 and stateMt.check_gripper_0 == 'False':
                 local_vel_pub_0.publish(vel_0)
@@ -482,18 +516,16 @@ def drone_0():
             if reached == True and flag1 == False:
                 print("d0 Reached goal")
 
-                if i == (len(setpoints_0)-1):
-                    ofb_ctl.setAutoLandMode_0()
-                    land_count += 1
-                    print('d0 Attempted to land c=', str(land_count))
-                    break
+                # if i == (len(setpoints_0)-1):
+                #     ofb_ctl.setAutoLandMode_0()
+                #     land_count += 1
+                #     print('d0 Attempted to land c=', str(land_count))
+                #     break
 
-                else:
-                    setpoints_0.append(stateMt.row_spawn_sp1[k])
-                    setpoints_0.extend(--)
-
-                    i = i+1
-                    print('d0 i increased to ', i, 'after reaching goal')
+                setpoints_0.extend(stateMt.row_spawn_sp0[k], (420, 420, 420))
+                # setpoints_0.extend(--)
+                i = i+1
+                print('d0 i increased to ', i, 'after reaching goal')
 
             if i == 7 or i == 14:  # ***###
                 # rospy.sleep(5)

@@ -205,14 +205,14 @@ def main():
     '''
     NOTE: To set the mode as OFFBOARD in px4, it needs atleast 100 setpoints at rate > 10 hz, so before changing the mode to OFFBOARD, send some dummy setpoints  
     '''
-    
+
     for i in range(100):
         #print('Sending dummy points')
         local_vel_pub.publish(vel)
         print("sending dummy")
         rate.sleep()
-    #dummy_points()
-     #ofb_ctl.paramset
+    # dummy_points()
+     # ofb_ctl.paramset
     # Arming the drone
     while not stateMt.state.armed:
         ofb_ctl.setArm()
@@ -224,7 +224,6 @@ def main():
         ofb_ctl.offboard_set_mode()
         rate.sleep()
     print("OFFBOARD mode activated")
-    
 
     def check_position():
         desired = np.array((setpoints[i][0], setpoints[i][1], setpoints[i][2]))
@@ -254,8 +253,6 @@ def main():
         Write your algorithm here
 
         '''
-     
-        
 
         # print(setpoints[i])
         ofb_ctl.offboard_set_mode()
@@ -264,7 +261,6 @@ def main():
         vel.twist.linear.y = 0
         vel.twist.linear.z = 0
 
-        
         local_vel_pub.publish(vel)
 
         rate.sleep()
