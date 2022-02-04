@@ -126,14 +126,17 @@ class stateMoniter:
         self.row_spawn_sp0 = list()
         self.row_spawn_sp1 = list()
         self.spawn_count = 0
-        self.blue_truck_count = 4
-        self.red_truck_count = 4
+        self.bt_i = -1 # neeed to write reset condition
+        self.rt_i = -1
 
-        self.blue_truck = np.array([(13.85, -7.4, 1.7), (13.85, -6.17, 1.7), (13.85, -4.95, 1.7)], [(14.7, -7.4, 1.7), (14.7, -6.17, 1.7),
-                                   (14.7, -4.95, 1.7)], [(15.55, -7.4, 1.7), (15.55, -6.17, 1.7), (15.55, -4.95, 1.7)], [(16.4, -7.4, 1.7), (16.4, -6.17, 1.7), (16.4, -4.95, 1.7)])
+        self.blue_truck = np.array([(13.85, -7.4, 1.84), (13.85, -6.17, 1.84), (13.85, -4.95, 1.84)], [(14.7, -7.4, 1.84), (14.7, -6.17, 1.84),
+                                   (14.7, -4.95, 1.84)], [(15.55, -7.4, 1.84), (15.55, -6.17, 1.84), (15.55, -4.95, 1.84)], [(16.4, -7.4, 1.84), (16.4, -6.17, 1.84), (16.4, -4.95, 1.84)])
 
-        self.red_truck = np.array([(56.5, 64.75, 1.7), (56.5, 65.98, 1.7), (56.5, 67.21, 1.7)], [(57.35, 64.75, 1.7), (57.35, 65.98, 1.7), (57.35, 67.21, 1.7)],
-                                  [(58.2, 64.75, 1.7), (58.2, 65.98, 1.7), (58.2, 67.21, 1.7)], [(59.05, 64.75, 1.7), (59.05, 65.98, 1.7), (59.05, 67.21, 1.7)],)
+        self.red_truck = np.array([(56.5, 64.75, 1.84), (56.5, 65.98, 1.84), (56.5, 67.21, 1.84)], [(57.35, 64.75, 1.84), (57.35, 65.98, 1.84), (57.35, 67.21, 1.84)],
+                                  [(58.2, 64.75, 1.84), (58.2, 65.98, 1.84), (58.2, 67.21, 1.84)], [(59.05, 64.75, 1.84), (59.05, 65.98, 1.84), (59.05, 67.21, 1.84)],)
+
+        self.blue_truck_seq = [self.blue_truck(3,2),self.blue_truck(3,1),self.blue_truck(3,0),self.blue_truck(2,0),self.blue_truck(2,1),self.blue_truck(2,2),self.blue_truck(1,2),self.blue_truck(1,1),self.blue_truck(1,0),self.blue_truck(0,0),self.blue_truck(0,1),self.blue_truck(0,2)]
+        self.red_truck_seq = [self.red_truck(3,2),self.red_truck(3,1),self.red_truck(3,0),self.red_truck(2,0),self.red_truck(2,1),self.red_truck(2,2),self.red_truck(1,2),self.red_truck(1,1),self.red_truck(1,0),self.red_truck(0,0),self.red_truck(0,1),self.red_truck(0,2)]
 
     def stateCb_0(self, msg):
         # Callback function for topic /mavros/state
@@ -177,27 +180,33 @@ class stateMoniter:
 
     def calculate_truck_point(self, id, drone_no):
         if id == 1:  # blue
-            self.blue_truck_count -= 1
+            self.bt_i += 1
             if drone_no == 0:
-                final_pt = tuple(
-                    map(lambda i, j: i-j, self.blue_truck[0, 0], (-1, 1, 0)))
+                drop_pt = tuple(
+                    map(lambda i, j: i-j, self.blue_truck_seq(self.bt_i), (-1, 1, 0)))
                 ########## res = tuple(map(lambda i, j: i - j, test_tup1, test_tup2))
-                return final_pt
+                final_array = [(drop_pt[0],drop_pt[1],6),drop_pt,(drop_pt[0],drop_pt[1],6)]
+                
+
             else:
-                final_pt = tuple(
-                    map(lambda i, j: i-j, self.blue_truck[0, 0], (-61, 1, 0)))
-                return final_pt
+                drop_pt = tuple(
+                    map(lambda i, j: i-j, self.blue_truck_seq(self.bt_i), (-61, 1, 0)))
+                final_array = [(drop_pt[0],drop_pt[1],6),drop_pt,(drop_pt[0],drop_pt[1],6)]
 
         else:
-            self.red_truck_count += 1
+            self.rt_i += 1
             if drone_no == 1:
-                final_pt = tuple(
-                    map(lambda i, j: i-j, self.red_truck[0, 0], (-1, 1, 0)))
-                return final_pt
+                drop_pt = tuple(
+                    map(lambda i, j: i-j, self.red_truck_seq(self.rt_i), (-1, 1, 0)))
+                final_array = [(drop_pt[0],drop_pt[1],6),drop_pt,(drop_pt[0],drop_pt[1],6)]
+
             else:
-                final_pt = tuple(
-                    map(lambda i, j: i-j, self.red_truck[0, 0], (-61, 1, 0)))
-                return final_pt
+                drop_pt = tuple(
+                    map(lambda i, j: i-j, self.red_truck_seq(self.rt_i), (-61, 1, 0)))
+                final_array = [(drop_pt[0],drop_pt[1],6),drop_pt,(drop_pt[0],drop_pt[1],6)]
+
+
+        return final_array
 
 
 class image_processing:
@@ -482,7 +491,7 @@ def drone_0():
                 # print(setpoints)
 
                 local_pos_pub_0.publish(pos_0)
-                setpoints_0.insert(TRUCK)
+                setpoints_0.extend(stateMt.calculate_truck_point(img_proc.Detected_ArUco_markers_0.keys()[0],0))
 
             if flag1 == False and stateMt.local_pos_0.z > 2.5 and stateMt.check_gripper_0 == 'False':
                 local_vel_pub_0.publish(vel_0)
