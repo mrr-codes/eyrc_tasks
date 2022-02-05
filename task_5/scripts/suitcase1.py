@@ -126,17 +126,20 @@ class stateMoniter:
         self.row_spawn_sp0 = list()
         self.row_spawn_sp1 = list()
         self.spawn_count = 0
-        self.bt_i = -1 # neeed to write reset condition
+        self.bt_i = -1  # neeed to write reset condition
         self.rt_i = -1
 
-        self.blue_truck = np.array([(13.85, -7.4, 1.84), (13.85, -6.17, 1.84), (13.85, -4.95, 1.84)], [(14.7, -7.4, 1.84), (14.7, -6.17, 1.84),
-                                   (14.7, -4.95, 1.84)], [(15.55, -7.4, 1.84), (15.55, -6.17, 1.84), (15.55, -4.95, 1.84)], [(16.4, -7.4, 1.84), (16.4, -6.17, 1.84), (16.4, -4.95, 1.84)])
+        self.blue_truck = np.array([[(13.85, -7.4, 1.84), (13.85, -6.17, 1.84), (13.85, -4.95, 1.84)], [(14.7, -7.4, 1.84), (14.7, -6.17, 1.84),
+                                   (14.7, -4.95, 1.84)], [(15.55, -7.4, 1.84), (15.55, -6.17, 1.84), (15.55, -4.95, 1.84)], [(16.4, -7.4, 1.84), (16.4, -6.17, 1.84), (16.4, -4.95, 1.84)]])
 
-        self.red_truck = np.array([(56.5, 64.75, 1.84), (56.5, 65.98, 1.84), (56.5, 67.21, 1.84)], [(57.35, 64.75, 1.84), (57.35, 65.98, 1.84), (57.35, 67.21, 1.84)],
-                                  [(58.2, 64.75, 1.84), (58.2, 65.98, 1.84), (58.2, 67.21, 1.84)], [(59.05, 64.75, 1.84), (59.05, 65.98, 1.84), (59.05, 67.21, 1.84)],)
+        self.red_truck = np.array([[(56.5, 64.75, 1.84), (56.5, 65.98, 1.84), (56.5, 67.21, 1.84)], [(57.35, 64.75, 1.84), (57.35, 65.98, 1.84), (57.35, 67.21, 1.84)],
+                                  [(58.2, 64.75, 1.84), (58.2, 65.98, 1.84), (58.2, 67.21, 1.84)], [(59.05, 64.75, 1.84), (59.05, 65.98, 1.84), (59.05, 67.21, 1.84)]])
 
-        self.blue_truck_seq = [self.blue_truck(3,2),self.blue_truck(3,1),self.blue_truck(3,0),self.blue_truck(2,0),self.blue_truck(2,1),self.blue_truck(2,2),self.blue_truck(1,2),self.blue_truck(1,1),self.blue_truck(1,0),self.blue_truck(0,0),self.blue_truck(0,1),self.blue_truck(0,2)]
-        self.red_truck_seq = [self.red_truck(3,2),self.red_truck(3,1),self.red_truck(3,0),self.red_truck(2,0),self.red_truck(2,1),self.red_truck(2,2),self.red_truck(1,2),self.red_truck(1,1),self.red_truck(1,0),self.red_truck(0,0),self.red_truck(0,1),self.red_truck(0,2)]
+        self.blue_truck_seq = [self.blue_truck[3, 2], self.blue_truck[3, 1], self.blue_truck[3, 0], self.blue_truck[2, 0], self.blue_truck[2, 1], self.blue_truck[
+            2, 2], self.blue_truck[1, 2], self.blue_truck[1, 1], self.blue_truck[1, 0], self.blue_truck[0, 0], self.blue_truck[0, 1], self.blue_truck[0, 2]]
+
+        self.red_truck_seq = [self.red_truck[3, 2], self.red_truck[3, 1], self.red_truck[3, 0], self.red_truck[2, 0], self.red_truck[2, 1], self.red_truck[
+            2, 2], self.red_truck[1, 2], self.red_truck[1, 1], self.red_truck[1, 0], self.red_truck[0, 0], self.red_truck[0, 1], self.red_truck[0, 2]]
 
     def stateCb_0(self, msg):
         # Callback function for topic /mavros/state
@@ -166,9 +169,9 @@ class stateMoniter:
 
     def calculate_row_start(self, row_no, drone_no):
         if drone_no == 0:
-            return (0, 4*row_no, 3)
+            return (-2, 4*(row_no-1), 3)
         else:
-            return (0, 4*(row_no-15), 4)
+            return (-2, 4*(row_no-15), 4)
 
     def spawn_clbk(self, msg):
         if self.spawn_count % 2 == 0:
@@ -179,32 +182,34 @@ class stateMoniter:
         self.spawn_count += 1
 
     def calculate_truck_point(self, id, drone_no):
-        if id == 1:  # blue
+        if id == 2:  # blue
             self.bt_i += 1
             if drone_no == 0:
                 drop_pt = tuple(
                     map(lambda i, j: i-j, self.blue_truck_seq(self.bt_i), (-1, 1, 0)))
                 ########## res = tuple(map(lambda i, j: i - j, test_tup1, test_tup2))
-                final_array = [(drop_pt[0],drop_pt[1],6),drop_pt,(drop_pt[0],drop_pt[1],6)]
-                
+                final_array = [(drop_pt[0], drop_pt[1], 6),
+                               drop_pt, (drop_pt[0], drop_pt[1], 6)]
 
             else:
                 drop_pt = tuple(
                     map(lambda i, j: i-j, self.blue_truck_seq(self.bt_i), (-61, 1, 0)))
-                final_array = [(drop_pt[0],drop_pt[1],6),drop_pt,(drop_pt[0],drop_pt[1],6)]
+                final_array = [(drop_pt[0], drop_pt[1], 6),
+                               drop_pt, (drop_pt[0], drop_pt[1], 6)]
 
         else:
             self.rt_i += 1
             if drone_no == 1:
                 drop_pt = tuple(
                     map(lambda i, j: i-j, self.red_truck_seq(self.rt_i), (-1, 1, 0)))
-                final_array = [(drop_pt[0],drop_pt[1],6),drop_pt,(drop_pt[0],drop_pt[1],6)]
+                final_array = [(drop_pt[0], drop_pt[1], 6),
+                               drop_pt, (drop_pt[0], drop_pt[1], 6)]
 
             else:
                 drop_pt = tuple(
                     map(lambda i, j: i-j, self.red_truck_seq(self.rt_i), (-61, 1, 0)))
-                final_array = [(drop_pt[0],drop_pt[1],6),drop_pt,(drop_pt[0],drop_pt[1],6)]
-
+                final_array = [(drop_pt[0], drop_pt[1], 6),
+                               drop_pt, (drop_pt[0], drop_pt[1], 6)]
 
         return final_array
 
@@ -263,6 +268,7 @@ class image_processing:
             cv2.waitKey(1)
             self.Detected_ArUco_markers_0 = self.detect_ArUco(self.img)
 
+            print('detected aruco dict is', self.Detected_ArUco_markers_0)
             for key in self.Detected_ArUco_markers_0.keys():
                 self.centre = self.calcuate_centre(
                     self.Detected_ArUco_markers_0[key])
@@ -271,6 +277,8 @@ class image_processing:
                 self.position_aruco_y_0 = self.centre[1]
                 self.bcorner_0 = self.bcorner_0
                 self.tpctr = self.tpctr
+
+                print("ArUco of id ", key, 'is at', self.centre)
 
                 #print(self.distance_y_m, 'This is y distance error in meters')
                 '''print("distance is", self.eucl_dist,
@@ -327,7 +335,7 @@ def drone_0():
     # setpoints_0 = [(0, 0, 3), (0, 13, 3), (-1, 16, 3), (17.4, -7.17, 4), (17.4, -7.17, 4), (17.4, -7.17, 1.8), (17.4, -7.17, 4),
     #                (-1, 18, 3), (-1, 24, 3), (16.55, -7.17, 4), (16.55, -7.17, 4), (16.55, -7.17, 1.8), (16.55, -7.17, 4), (0, 0, 3)]
 
-    setpoints_0 = [(0, 0, 3)]
+    setpoints_0 = [(-2, 0, 3)]
 
   # List to setpoints
 
@@ -410,11 +418,11 @@ def drone_0():
     flag1 = False
     previous_x_error = 0
     previous_y_error = 0
-    vi = 0.1
+    vi = 0.05
     box_dropped = False
     flag_flip_pos_vol = False
     k = 0
-
+    m = -1
     ofb_ctl.setArm_0()
     while not rospy.is_shutdown():
 
@@ -423,6 +431,7 @@ def drone_0():
         ofb_ctl.offboard_set_mode_0()
         reached = check_position_0()
         if i == 8:
+            print('clearing spts.')
             setpoints_0.clear()
             i = 0
             k += 1
@@ -433,10 +442,20 @@ def drone_0():
             vi = 0.2
 
         if len(img_proc.Detected_ArUco_markers_0) > 0 and box_dropped == False:
-            #print('Aruco marker detected')
+
             flag_flip_pos_vol = False
             img_proc.aruco_thresh_bool = True
             # - ((img_proc.position_aruco_x_0 - 200) - previous_x_error)/40)
+            #pos_0.pose.position.x = img_proc.box_setpoint[0]
+            #pos_0.pose.position.y = img_proc.box_setpoint[1]
+            while(m < 0):
+                print('publishing set pt to decrease height to 1m')
+                pos_0.pose.position.x = stateMt.local_pos_0.x
+                pos_0.pose.position.y = stateMt.local_pos_0.y
+                pos_0.pose.position.z = 1
+                local_pos_pub_0.publish(pos_0)
+                rospy.sleep(5)
+                m += 1
 
             vel_0.twist.linear.x = (
                 ((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/550)
@@ -446,7 +465,7 @@ def drone_0():
                   vel_0.twist.linear.x, vel_0.twist.linear.y)
             vel_0.twist.linear.z = 0
 
-            local_vel_pub_0.publish(vel_0)
+            # local_vel_pub_0.publish(vel_0)
 
             #print('error to image:', img_proc.distance_x, img_proc.distance_y)
 
@@ -491,9 +510,11 @@ def drone_0():
                 # print(setpoints)
 
                 local_pos_pub_0.publish(pos_0)
-                setpoints_0.extend(stateMt.calculate_truck_point(img_proc.Detected_ArUco_markers_0.keys()[0],0))
+                setpoints_0.extend([stateMt.calculate_truck_point(
+                    img_proc.Detected_ArUco_markers_0.keys()[0], 0)])
 
-            if flag1 == False and stateMt.local_pos_0.z > 2.5 and stateMt.check_gripper_0 == 'False':
+            if flag1 == False and stateMt.local_pos_0.z > 0.5 and stateMt.check_gripper_0 == 'False':
+
                 local_vel_pub_0.publish(vel_0)
 
             previous_x_error = img_proc.position_aruco_x_0 - 200
@@ -511,6 +532,7 @@ def drone_0():
             # local_pos_pub_0.publish(pos_0)
             # local_vel_pub.publish(vel)
             if reached == True and (setpoints_0[i][1] != 0 and abs(setpoints_0[i][1]) % 4 == 0):
+                print('At row start velocity control')
                 vel_0.twist.linear.x = 3
                 vel_0.twist.linear.y = 0
                 vel_0.twist.linear.z = 0
@@ -531,8 +553,9 @@ def drone_0():
                 #     print('d0 Attempted to land c=', str(land_count))
                 #     break
 
-                setpoints_0.extend(stateMt.row_spawn_sp0[k], (420, 420, 420))
-                # setpoints_0.extend(--)
+                setpoints_0.extend([stateMt.row_spawn_sp0[k], (420, 420, 420)])
+                print('after reaching goal setpoints are', setpoints_0)
+
                 i = i+1
                 print('d0 i increased to ', i, 'after reaching goal')
 
@@ -668,7 +691,7 @@ def drone_1():
             print('d1 Box detected, the x and y velocities are:',
                   vel_1.twist.linear.x, vel_1.twist.linear.y)
             vel_1.twist.linear.z = 0
-            local_vel_pub_1.publish(vel_1)
+            # local_vel_pub_1.publish(vel_1)
 
             #print('error to image:', img_proc.distance_x, img_proc.distance_y)
 
@@ -767,12 +790,13 @@ def drone_1():
 if __name__ == '__main__':
 
     try:
-        p1 = Process(target=drone_0)
-        p1.start()
-        p2 = Process(target=drone_1)
-        p2.start()
-    # This is where I had to add the join() function.
-        p1.join()
-        p2.join()
+        drone_0()
+    #     p1 = Process(target=drone_0)
+    #     p1.start()
+    #     p2 = Process(target=drone_1)
+    #     p2.start()
+    # # This is where I had to add the join() function.
+    #     p1.join()
+    #     p2.join()
     except rospy.ROSInterruptException:
         pass
