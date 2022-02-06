@@ -432,17 +432,18 @@ def drone_0():
         # ofb_ctl.setArm_0()
         ofb_ctl.offboard_set_mode_0()
         reached = check_position_0()
-        if i == 8:
+        if i == 7:
             print('clearing spts.')
             x = 0
             setpoints_0.clear()
             i = 0
             k += 1
             setpoints_0.append(stateMt.row_spawn_sp0[k])
+            print('Setpoints list as of now', setpoints_0)
 
-        if i == 9:
-            box_dropped = False
-            vi = 0.2
+        # if i == 9:
+        #     box_dropped = False
+        #     vi = 0.2
 
         if len(img_proc.Detected_ArUco_markers_0) > 0 and box_dropped == False:
 
@@ -518,7 +519,10 @@ def drone_0():
                 # print(setpoints)
 
                 local_pos_pub_0.publish(pos_0)
-                setpoints_0.extend([stateMt.calculate_truck_point(box_id, 0)])
+                truck_pts = stateMt.calculate_truck_point(box_id, 0)
+                setpoints_0.extend(
+                    [truck_pts[0], truck_pts[1], truck_pts[2], (0, 0, 0)])
+                print('Setpoints list as of now', setpoints_0)
 
             if flag1 == False and stateMt.local_pos_0.z > 0.5 and stateMt.check_gripper_0 == 'False':
                 print('publishing PD velocity')
@@ -571,7 +575,7 @@ def drone_0():
                 i = i+1
                 print('d0 i increased to ', i, 'after reaching goal')
 
-            if i == 7 or i == 14:  # ***###
+            if i == 6:  # ***###
                 # rospy.sleep(5)
                 ofb_ctl.gripper_activate_0(False)
                 box_dropped = True
