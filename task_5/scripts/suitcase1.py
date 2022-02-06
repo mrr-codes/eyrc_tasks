@@ -453,14 +453,14 @@ def drone_0():
             #pos_0.pose.position.y = img_proc.box_setpoint[1]
 
             # rospy.sleep(0.25)
-            if (m > 0):
+            while (m < 0):
                 print('publishing set pt to decrease height to 1m')
                 pos_0.pose.position.x = stateMt.local_pos_0.x
                 pos_0.pose.position.y = stateMt.local_pos_0.y
                 pos_0.pose.position.z = 1
                 local_pos_pub_0.publish(pos_0)
                 rospy.sleep(5)
-            m += 1
+                m += 1
 
             vel_0.twist.linear.x = (
                 ((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/550)
