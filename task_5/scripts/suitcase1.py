@@ -251,7 +251,7 @@ class image_processing:
         np_arr = corners
         tl = np_arr[0, 0]
         tr = np_arr[0, 1]
-        br = np_arr[0, 2]
+        br = np_arr[0, 2]                                                                                                                    
         self.bcorner_0 = br
         self.bcorner_1 = br
         self.tpctr = [(tl[0]+tr[0])/2, (tl[1]+tr[1])/2]
@@ -277,8 +277,9 @@ class image_processing:
                 self.position_aruco_y_0 = self.centre[1]
                 self.bcorner_0 = self.bcorner_0
                 self.tpctr = self.tpctr
+                print('printing center and corner',self.tpctr,self.bcorner_0)
 
-                print("ArUco of id ", key, 'is at', self.centre)
+                #print("ArUco of id ", key, 'is at', self.centre)
 
                 #print(self.distance_y_m, 'This is y distance error in meters')
                 '''print("distance is", self.eucl_dist,
@@ -306,6 +307,8 @@ class image_processing:
                 self.position_aruco_y_1 = self.centre[1]
                 self.bcorner_1 = self.bcorner_1
                 self.tpctr = self.tpctr
+
+                g 
 
                 #print(self.distance_y_m, 'This is y distance error in meters')
                 '''print("distance is", self.eucl_dist,
@@ -423,6 +426,7 @@ def drone_0():
     flag_flip_pos_vol = False
     k = 0
     m = -1
+    x=0
     ofb_ctl.setArm_0()
     while not rospy.is_shutdown():
 
@@ -432,6 +436,7 @@ def drone_0():
         reached = check_position_0()
         if i == 8:
             print('clearing spts.')
+            x =0
             setpoints_0.clear()
             i = 0
             k += 1
@@ -469,7 +474,7 @@ def drone_0():
 
             #print('error to image:', img_proc.distance_x, img_proc.distance_y)
 
-            if (img_proc.bcorner_0[0] < (200) < img_proc.tpctr[0]) and (img_proc.tpctr[1] < (225) < img_proc.bcorner_0[1]):
+            if ((img_proc.bcorner_0[0]-10) < (200) < img_proc.tpctr[0]+10) and (img_proc.tpctr[1]-10 < (225) < img_proc.bcorner_0[1]+10):
 
                 flag1 = True
 
@@ -553,8 +558,10 @@ def drone_0():
                 #     print('d0 Attempted to land c=', str(land_count))
                 #     break
 
-                setpoints_0.extend([stateMt.row_spawn_sp0[k], (420, 420, 420)])
-                print('after reaching goal setpoints are', setpoints_0)
+                while x == 0:
+                    setpoints_0.extend([stateMt.row_spawn_sp0[k], (0, 0,4)])
+                    print('after reaching goal setpoints are', setpoints_0)
+                    x= x+1
 
                 i = i+1
                 print('d0 i increased to ', i, 'after reaching goal')
@@ -686,7 +693,7 @@ def drone_1():
             # - ((img_proc.position_aruco_x_1 - 200) - previous_x_error)/40)
             vel_1.twist.linear.x = (
                 ((img_proc.position_aruco_x_1 - 200)*stateMt.local_pos_1.z)/550)
-            vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/250) - (
+            vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/600) - (
                 img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z) - previous_y_error)/40)-0.1
             print('d1 Box detected, the x and y velocities are:',
                   vel_1.twist.linear.x, vel_1.twist.linear.y)
@@ -695,7 +702,7 @@ def drone_1():
 
             #print('error to image:', img_proc.distance_x, img_proc.distance_y)
 
-            if (img_proc.bcorner_0[0] < (200) < img_proc.tpctr[0]) and (img_proc.tpctr[1] < (225) < img_proc.bcorner_0[1]+10):
+            if (img_proc.bcorner_0[0]-10 < (200) < img_proc.tpctr[0]+10) and (img_proc.tpctr[1]-10 < (225) < img_proc.bcorner_0[1]+10):
 
                 flag1 = True
 
