@@ -695,7 +695,7 @@ def drone_1():
             # - ((img_proc.position_aruco_x_1 - 200) - previous_x_error)/40)
             vel_1.twist.linear.x = (
                 ((img_proc.position_aruco_x_1 - 200)*stateMt.local_pos_1.z)/550)
-            vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/600) - (
+            vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/400) - (
                 img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z) - previous_y_error)/40)-0.1
             print('d1 Box detected, the x and y velocities are:',
                   vel_1.twist.linear.x, vel_1.twist.linear.y)
