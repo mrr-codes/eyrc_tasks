@@ -268,7 +268,7 @@ class image_processing:
             cv2.waitKey(1)
             self.Detected_ArUco_markers_0 = self.detect_ArUco(self.img)
 
-            print('detected aruco dict is', self.Detected_ArUco_markers_0)
+            #print('detected aruco dict is', self.Detected_ArUco_markers_0)
             for key in self.Detected_ArUco_markers_0.keys():
                 self.centre = self.calcuate_centre(
                     self.Detected_ArUco_markers_0[key])
@@ -278,7 +278,7 @@ class image_processing:
                 self.bcorner_0 = self.bcorner_0
                 self.tpctr = self.tpctr
 
-                print("ArUco of id ", key, 'is at', self.centre)
+               # print("ArUco of id ", key, 'is at', self.centre)
 
                 #print(self.distance_y_m, 'This is y distance error in meters')
                 '''print("distance is", self.eucl_dist,
@@ -467,7 +467,8 @@ def drone_0():
 
             # local_vel_pub_0.publish(vel_0)
 
-            #print('error to image:', img_proc.distance_x, img_proc.distance_y)
+            print('Ranges', img_proc.bcorner_0[0], '--(200)--', img_proc.tpctr[0],
+                  'and', img_proc.tpctr[1], '--(225)--', img_proc.bcorner_0[1])
 
             if (img_proc.bcorner_0[0] < (200) < img_proc.tpctr[0]) and (img_proc.tpctr[1] < (225) < img_proc.bcorner_0[1]):
 
@@ -514,7 +515,7 @@ def drone_0():
                     img_proc.Detected_ArUco_markers_0.keys()[0], 0)])
 
             if flag1 == False and stateMt.local_pos_0.z > 0.5 and stateMt.check_gripper_0 == 'False':
-
+                print('publishing PD velocity')
                 local_vel_pub_0.publish(vel_0)
 
             previous_x_error = img_proc.position_aruco_x_0 - 200
@@ -543,6 +544,8 @@ def drone_0():
                 local_vel_pub_0.publish(vel_0)
 
             else:
+                print('Setpoint published is', pos_0.pose.position.x,
+                      pos_0.pose.position.y, pos_0.pose.position.z)
                 local_pos_pub_0.publish(pos_0)
             if reached == True and flag1 == False:
                 print("d0 Reached goal")
@@ -552,9 +555,9 @@ def drone_0():
                 #     land_count += 1
                 #     print('d0 Attempted to land c=', str(land_count))
                 #     break
-
-                setpoints_0.extend([stateMt.row_spawn_sp0[k], (420, 420, 420)])
-                print('after reaching goal setpoints are', setpoints_0)
+                if i == 0:
+                    setpoints_0.extend([stateMt.row_spawn_sp0[k], (0, 0, 10)])
+                    print('after reaching goal setpoints are', setpoints_0)
 
                 i = i+1
                 print('d0 i increased to ', i, 'after reaching goal')
