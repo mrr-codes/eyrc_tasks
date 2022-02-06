@@ -186,28 +186,28 @@ class stateMoniter:
             self.bt_i += 1
             if drone_no == 0:
                 drop_pt = tuple(
-                    map(lambda i, j: i-j, self.blue_truck_seq(self.bt_i), (-1, 1, 0)))
+                    map(lambda i, j: i-j, self.blue_truck_seq[self.bt_i], (-1, 1, 0)))
                 ########## res = tuple(map(lambda i, j: i - j, test_tup1, test_tup2))
                 final_array = [(drop_pt[0], drop_pt[1], 6),
                                drop_pt, (drop_pt[0], drop_pt[1], 6)]
 
             else:
                 drop_pt = tuple(
-                    map(lambda i, j: i-j, self.blue_truck_seq(self.bt_i), (-61, 1, 0)))
+                    map(lambda i, j: i-j, self.blue_truck_seq[self.bt_i], (-61, 1, 0)))
                 final_array = [(drop_pt[0], drop_pt[1], 6),
                                drop_pt, (drop_pt[0], drop_pt[1], 6)]
 
         else:
             self.rt_i += 1
-            if drone_no == 1:
+            if drone_no == 0:
                 drop_pt = tuple(
-                    map(lambda i, j: i-j, self.red_truck_seq(self.rt_i), (-1, 1, 0)))
+                    map(lambda i, j: i-j, self.red_truck_seq[self.rt_i], (-1, 1, 0)))
                 final_array = [(drop_pt[0], drop_pt[1], 6),
                                drop_pt, (drop_pt[0], drop_pt[1], 6)]
 
             else:
                 drop_pt = tuple(
-                    map(lambda i, j: i-j, self.red_truck_seq(self.rt_i), (-61, 1, 0)))
+                    map(lambda i, j: i-j, self.red_truck_seq[self.rt_i], (-61, 1, 0)))
                 final_array = [(drop_pt[0], drop_pt[1], 6),
                                drop_pt, (drop_pt[0], drop_pt[1], 6)]
 
@@ -451,18 +451,20 @@ def drone_0():
             # - ((img_proc.position_aruco_x_0 - 200) - previous_x_error)/40)
             #pos_0.pose.position.x = img_proc.box_setpoint[0]
             #pos_0.pose.position.y = img_proc.box_setpoint[1]
-            # while(m < 0):
-            #     print('publishing set pt to decrease height to 1m')
-            #     pos_0.pose.position.x = stateMt.local_pos_0.x
-            #     pos_0.pose.position.y = stateMt.local_pos_0.y
-            #     pos_0.pose.position.z = 1
-            #     local_pos_pub_0.publish(pos_0)
-            #     rospy.sleep(5)
-            #     m += 1
+
+            # rospy.sleep(0.25)
+            if (m > 0):
+                print('publishing set pt to decrease height to 1m')
+                pos_0.pose.position.x = stateMt.local_pos_0.x
+                pos_0.pose.position.y = stateMt.local_pos_0.y
+                pos_0.pose.position.z = 1
+                local_pos_pub_0.publish(pos_0)
+                rospy.sleep(5)
+            m += 1
 
             vel_0.twist.linear.x = (
                 ((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/550)
-            vel_0.twist.linear.y = -((((img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/250) - (
+            vel_0.twist.linear.y = -((((img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/400) - (
                 img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z) - previous_y_error)/40)-vi
             print('d0 Box detected, the x and y velocities are:',
                   vel_0.twist.linear.x, vel_0.twist.linear.y)
@@ -473,9 +475,11 @@ def drone_0():
             print('Ranges', img_proc.bcorner_0[0], '--(200)--', img_proc.tpctr[0],
                   'and', img_proc.tpctr[1], '--(225)--', img_proc.bcorner_0[1])
 
-            if ((img_proc.bcorner_0[0]-10) < (200) < img_proc.tpctr[0]+10) and (img_proc.tpctr[1]-10 < (225) < img_proc.bcorner_0[1]+10):
+            # removed +10-10 at y's
+            if ((img_proc.bcorner_0[0]-10) < (200) < img_proc.tpctr[0]+10) and (img_proc.tpctr[1] < (225) < img_proc.bcorner_0[1]):
 
                 flag1 = True
+                box_id = list(img_proc.Detected_ArUco_markers_0.keys())[0]
 
                 img_proc.box_setpoint = [
                     stateMt.local_pos_0.x, stateMt.local_pos_0.y]
@@ -514,8 +518,7 @@ def drone_0():
                 # print(setpoints)
 
                 local_pos_pub_0.publish(pos_0)
-                setpoints_0.extend([stateMt.calculate_truck_point(
-                    img_proc.Detected_ArUco_markers_0.keys()[0], 0)])
+                setpoints_0.extend([stateMt.calculate_truck_point(box_id, 0)])
 
             if flag1 == False and stateMt.local_pos_0.z > 0.5 and stateMt.check_gripper_0 == 'False':
                 print('publishing PD velocity')
