@@ -277,7 +277,7 @@ class image_processing:
                 self.position_aruco_y_0 = self.centre[1]
                 self.bcorner_0 = self.bcorner_0
                 self.tpctr = self.tpctr
-                print('printing center and corner', self.tpctr, self.bcorner_0)
+                #print('printing center and corner', self.tpctr, self.bcorner_0)
 
                # print("ArUco of id ", key, 'is at', self.centre)
 
@@ -336,7 +336,7 @@ def drone_0():
     # setpoints_0 = [(0, 0, 3), (0, 13, 3), (-1, 16, 3), (17.4, -7.17, 4), (17.4, -7.17, 4), (17.4, -7.17, 1.8), (17.4, -7.17, 4),
     #                (-1, 18, 3), (-1, 24, 3), (16.55, -7.17, 4), (16.55, -7.17, 4), (16.55, -7.17, 1.8), (16.55, -7.17, 4), (0, 0, 3)]
 
-    setpoints_0 = [(-2, 0, 3)]
+    setpoints_0 = [(0, 0, 3)]
 
   # List to setpoints
 
@@ -398,7 +398,19 @@ def drone_0():
             rate.sleep()
         print("d0 OFFBOARD mode activated")
     offboard_0()
+
+    def riseup_0():
+        while stateMt.local_pos_0.z < 2.5:
+            print('d0 Sending initial points')
+            pos_0.pose.position.x = 0
+            pos_0.pose.position.y = 0
+            pos_0.pose.position.z = 3
+            local_pos_pub_0.publish(pos_0)
+            rate.sleep()
+    # riseup_0()
     i = 0
+
+    # if len(setpoints_0) != 0:
 
     pos_0.pose.position.x = setpoints_0[i][0]
     pos_0.pose.position.y = setpoints_0[i][1]
@@ -431,20 +443,22 @@ def drone_0():
         stateMt
         # ofb_ctl.setArm_0()
         ofb_ctl.offboard_set_mode_0()
+
         reached = check_position_0()
-        if i == 7:
+        if i > 5 and (len(setpoints_0)-1):
             print('clearing spts.')
             x = 0
             setpoints_0.clear()
-            box_dropped = False
             i = 0
             k += 1
-            m=0
+            m = -1
             setpoints_0.append(stateMt.row_spawn_sp0[k])
             print('Setpoints list as of now', setpoints_0)
 
-        if i == 0 and reached==True:
+        if i == 1:
             box_dropped = False
+            m = -1
+            print("setting m to -1")
         #     vi = 0.2
 
         if len(img_proc.Detected_ArUco_markers_0) > 0 and box_dropped == False:
@@ -457,7 +471,7 @@ def drone_0():
 
             # rospy.sleep(0.25)
             while (m < 0):
-                if 150 <img_proc.position_aruco_x_0 < 250:
+                if 150 < img_proc.position_aruco_x_0 < 250:
                     print('publishing set pt to decrease height to 1m')
                     pos_0.pose.position.x = stateMt.local_pos_0.x
                     pos_0.pose.position.y = stateMt.local_pos_0.y
@@ -467,11 +481,11 @@ def drone_0():
                     m += 1
             if m == 0 and 200 < img_proc.position_aruco_y_0 < 350:
                 vel_0.twist.linear.x = (
-                ((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/550)
+                    ((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/550)
                 vel_0.twist.linear.y = -((((img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/400) - (
-                img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z) - previous_y_error)/40)-vi
+                    img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z) - previous_y_error)/40)-vi
                 print('d0 Box detected, the x and y velocities are:',
-                  vel_0.twist.linear.x, vel_0.twist.linear.y)
+                      vel_0.twist.linear.x, vel_0.twist.linear.y)
                 vel_0.twist.linear.z = 0
                 print('publishing PD velocity')
                 local_vel_pub_0.publish(vel_0)
@@ -529,8 +543,7 @@ def drone_0():
                     [truck_pts[0], truck_pts[1], truck_pts[2], (0, 0, 0)])
                 print('Setpoints list as of now', setpoints_0)
 
-            #if flag1 == False and stateMt.local_pos_0.z > 0.5 and stateMt.check_gripper_0 == 'False':
-                
+            # if flag1 == False and stateMt.local_pos_0.z > 0.5 and stateMt.check_gripper_0 == 'False':
 
             previous_x_error = img_proc.position_aruco_x_0 - 200
             previous_y_error = img_proc.position_aruco_y_0 - \
@@ -579,7 +592,7 @@ def drone_0():
                 i = i+1
                 print('d0 i increased to ', i, 'after reaching goal')
 
-            if i == 6:  # ***###
+            if i > 4 and i == (len(setpoints_0) - 2):  # ***###
                 # rospy.sleep(5)
                 ofb_ctl.gripper_activate_0(False)
                 box_dropped = True
