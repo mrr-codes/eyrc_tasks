@@ -436,13 +436,15 @@ def drone_0():
             print('clearing spts.')
             x = 0
             setpoints_0.clear()
+            box_dropped = False
             i = 0
             k += 1
+            m=0
             setpoints_0.append(stateMt.row_spawn_sp0[k])
             print('Setpoints list as of now', setpoints_0)
 
-        # if i == 9:
-        #     box_dropped = False
+        if i == 0 and reached==True:
+            box_dropped = False
         #     vi = 0.2
 
         if len(img_proc.Detected_ArUco_markers_0) > 0 and box_dropped == False:
@@ -455,21 +457,24 @@ def drone_0():
 
             # rospy.sleep(0.25)
             while (m < 0):
-                print('publishing set pt to decrease height to 1m')
-                pos_0.pose.position.x = stateMt.local_pos_0.x
-                pos_0.pose.position.y = stateMt.local_pos_0.y
-                pos_0.pose.position.z = 1
-                local_pos_pub_0.publish(pos_0)
-                rospy.sleep(5)
-                m += 1
-
-            vel_0.twist.linear.x = (
+                if 150 <img_proc.position_aruco_x_0 < 250:
+                    print('publishing set pt to decrease height to 1m')
+                    pos_0.pose.position.x = stateMt.local_pos_0.x
+                    pos_0.pose.position.y = stateMt.local_pos_0.y
+                    pos_0.pose.position.z = 1
+                    local_pos_pub_0.publish(pos_0)
+                    rospy.sleep(5)
+                    m += 1
+            if m == 0 and 200 < img_proc.position_aruco_y_0 < 350:
+                vel_0.twist.linear.x = (
                 ((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/550)
-            vel_0.twist.linear.y = -((((img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/400) - (
+                vel_0.twist.linear.y = -((((img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/400) - (
                 img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z) - previous_y_error)/40)-vi
-            print('d0 Box detected, the x and y velocities are:',
+                print('d0 Box detected, the x and y velocities are:',
                   vel_0.twist.linear.x, vel_0.twist.linear.y)
-            vel_0.twist.linear.z = 0
+                vel_0.twist.linear.z = 0
+                print('publishing PD velocity')
+                local_vel_pub_0.publish(vel_0)
 
             # local_vel_pub_0.publish(vel_0)
 
@@ -493,7 +498,7 @@ def drone_0():
                 #rospy.sleep(2)  # %%%%##
                 ofb_ctl.setAutoLandMode_0()
                 print('d0 Attempted to land c=', str(land_count))
-                rospy.sleep(8)
+                rospy.sleep(12)
                 print("d0 Gripping the box")
                 ofb_ctl.gripper_activate_0(True)
                 if stateMt.check_gripper_0 == 'True':
@@ -524,9 +529,8 @@ def drone_0():
                     [truck_pts[0], truck_pts[1], truck_pts[2], (0, 0, 0)])
                 print('Setpoints list as of now', setpoints_0)
 
-            if flag1 == False and stateMt.local_pos_0.z > 0.5 and stateMt.check_gripper_0 == 'False':
-                print('publishing PD velocity')
-                local_vel_pub_0.publish(vel_0)
+            #if flag1 == False and stateMt.local_pos_0.z > 0.5 and stateMt.check_gripper_0 == 'False':
+                
 
             previous_x_error = img_proc.position_aruco_x_0 - 200
             previous_y_error = img_proc.position_aruco_y_0 - \
@@ -544,7 +548,7 @@ def drone_0():
             # local_vel_pub.publish(vel)
             if reached == True and (setpoints_0[i][1] != 0 and abs(setpoints_0[i][1]) % 4 == 0):
                 print('At row start velocity control')
-                vel_0.twist.linear.x = 3
+                vel_0.twist.linear.x = 1.5
                 vel_0.twist.linear.y = 0
                 vel_0.twist.linear.z = 0
 
@@ -568,7 +572,7 @@ def drone_0():
                 #     break
 
                 while x == 0:
-                    setpoints_0.extend([stateMt.row_spawn_sp0[k], (0, 0, 4)])
+                    setpoints_0.extend([stateMt.row_spawn_sp0[k], (0, 4, 4)])
                     print('after reaching goal setpoints are', setpoints_0)
                     x = x+1
 
