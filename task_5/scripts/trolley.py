@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import imghdr
 import rospy
 from geometry_msgs.msg import *
 from mavros_msgs.msg import *
@@ -451,6 +452,7 @@ def drone_0():
             setpoints_0.clear()
             i = 0
             k += 1
+            previous_y_error = 0
             #m = -1
             setpoints_0.extend([(stateMt.local_pos_0.x,stateMt.local_pos_0.y,6),stateMt.row_spawn_sp0[k],(0,0,4)])
             print('Setpoints list as of now', setpoints_0)
@@ -479,11 +481,11 @@ def drone_0():
                     print('publishing set pt to decrease height to 1m')
                     pos_0.pose.position.x = stateMt.local_pos_0.x
                     pos_0.pose.position.y = stateMt.local_pos_0.y
-                    pos_0.pose.position.z = 1
+                    pos_0.pose.position.z = 1.5
                     local_pos_pub_0.publish(pos_0)
                     rospy.sleep(5)
                     m += 1
-            if m == 0 and 200 < img_proc.position_aruco_y_0 < 350:
+            if m == 0 :
                 vel_0.twist.linear.x = (
                     ((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/550)
                 vel_0.twist.linear.y = -((((img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/400) - (
@@ -500,7 +502,7 @@ def drone_0():
                   'and', img_proc.tpctr[1], '--(225)--', img_proc.bcorner_0[1])
 
             # removed +10-10 at y's
-            if ((img_proc.bcorner_0[0]-10) < (200) < img_proc.tpctr[0]+10) and (img_proc.tpctr[1] < (225) < img_proc.bcorner_0[1]):
+            if ((img_proc.position_aruco_x_0-10) < (200) < (img_proc.position_aruco_x_0+10)) and (img_proc.position_aruco_y_0 -25  < (225) < (img_proc.position_aruco_y_0)):
 
                 flag1 = True
                 box_id = list(img_proc.Detected_ArUco_markers_0.keys())[0]
