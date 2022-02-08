@@ -277,7 +277,7 @@ class image_processing:
                 self.position_aruco_y_0 = self.centre[1]
                 self.bcorner_0 = self.bcorner_0
                 self.tpctr = self.tpctr
-                self.exo_rad=math.sqrt((self.bcorner_0[0]-self.position_aruco_x_0)**2+(self.bcorner_0[1]-self.position_aruco_y_0)**2)
+                self.exo_rad=math.sqrt((self.bcorner_0[0]-self.position_aruco_x_0)**2+(self.bcorner_0[1]-self.position_aruco_y_0)**2)+5
                 #print('printing center and corner', self.tpctr, self.bcorner_0)
 
                # print("ArUco of id ", key, 'is at', self.centre)
@@ -504,12 +504,11 @@ def drone_0():
 
             # local_vel_pub_0.publish(vel_0)
 
-            print('Ranges', img_proc.bcorner_0[0], '--(200)--', img_proc.tpctr[0],
-                  'and', img_proc.tpctr[1], '--(225)--', img_proc.bcorner_0[1])
+                print(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2),img_proc.exo_rad,img_proc.position_aruco_y_0)
 
             # removed +10-10 at y's
             #if ((img_proc.position_aruco_x_0-10) < (200) < (img_proc.position_aruco_x_0+10)) and (img_proc.position_aruco_y_0 -25  < (225) < (img_proc.position_aruco_y_0)):
-            if(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2)<= (img_proc.exo_rad)) and 225<img_proc.position_aruco_y_0:
+            if(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2)<= (img_proc.exo_rad)**2) and (225 <img_proc.position_aruco_y_0):
                 flag1 = True
                 box_id = list(img_proc.Detected_ArUco_markers_0.keys())[0]
 
