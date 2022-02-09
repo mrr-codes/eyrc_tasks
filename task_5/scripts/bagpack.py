@@ -155,9 +155,11 @@ class stateMoniter:
     def spawn_clbk(self, msg):
         if self.spawn_count % 2 == 0:
             self.row_spawn_sp0.append(self.calculate_row_start(msg.data, 0))
+            print('d0 Row_spawn list',self.row_spawn_sp0)
 
         else:
             self.row_spawn_sp1.append(self.calculate_row_start(msg.data, 1))
+            print('d1 Row_spawn list',self.row_spawn_sp1)
             
         self.spawn_count += 1
 
@@ -253,7 +255,7 @@ class image_processing:
                 self.position_aruco_x_0 = self.centre[0]
                 self.position_aruco_y_0 = self.centre[1]
                 self.bcorner_0 = self.bcorner_0
-                self.exo_rad_0=math.sqrt((self.bcorner_0[0]-self.position_aruco_x_0)**2+(self.bcorner_0[1]-self.position_aruco_y_0)**2)+5
+                self.exo_rad_0=math.sqrt((self.bcorner_0[0]-self.position_aruco_x_0)**2+(self.bcorner_0[1]-self.position_aruco_y_0)**2)
                 cv2.circle(self.img,(int(self.position_aruco_x_0),int(self.position_aruco_y_0)),radius=abs(int(self.exo_rad_0)),color= (0,225,0),thickness=2)
             
             cv2.imshow('check_frame_0', self.img)
@@ -277,7 +279,7 @@ class image_processing:
                 self.position_aruco_x_1 = self.centre[0]
                 self.position_aruco_y_1 = self.centre[1]
                 self.bcorner_1 = self.bcorner_1
-                self.exo_rad_1=math.sqrt((self.bcorner_0[0]-self.position_aruco_x_0)**2+(self.bcorner_0[1]-self.position_aruco_y_0)**2)+5
+                self.exo_rad_1=math.sqrt((self.bcorner_0[0]-self.position_aruco_x_0)**2+(self.bcorner_0[1]-self.position_aruco_y_0)**2)
                 cv2.circle(self.img,(int(self.position_aruco_x_1),int(self.position_aruco_y_1)),radius=abs(int(self.exo_rad_1)),color= (0,225,0),thickness=2)           
                 
             cv2.imshow('check_frame_1', self.img)
@@ -431,7 +433,7 @@ def drone_0():
 
                 pos_0.pose.position.x = img_proc.box_setpoint[0]
                 pos_0.pose.position.y = img_proc.box_setpoint[1]
-                pos_0.pose.position.z = 1
+                pos_0.pose.position.z = 3
                 local_pos_pub_0.publish(pos_0)
                 ofb_ctl.setAutoLandMode_0()
                 print('d0 Attempted to land c=', str(land_count))
@@ -512,7 +514,6 @@ def drone_0():
 
 
 def drone_1():
-    
     stateMt = stateMoniter()
     ofb_ctl = offboard_control()
     img_proc = image_processing()
@@ -591,10 +592,10 @@ def drone_1():
     m = -1
     x = 0
     ofb_ctl.setArm_1()
+
     while not rospy.is_shutdown():
 
         stateMt
-        # ofb_
         ofb_ctl.offboard_set_mode_1()
         reached = check_position_1()
 
@@ -651,7 +652,7 @@ def drone_1():
                 
                 pos_1.pose.position.x = img_proc.box_setpoint[0]
                 pos_1.pose.position.y = img_proc.box_setpoint[1]-0.1
-                pos_1.pose.position.z = 1
+                pos_1.pose.position.z = 3
                 local_pos_pub_1.publish(pos_1)
                 ofb_ctl.setAutoLandMode_1()
                 print('d1 Attempted to land c=', str(land_count))
@@ -716,6 +717,7 @@ def drone_1():
             if reached == True and flag1 == False:
                 print("d1 Reached goal")
                 while x == 0:
+                    print(k)
                     setpoints_1.extend([stateMt.row_spawn_sp1[k],(0,4,4)])
                     print('after reaching goal setpoints are', setpoints_1)
                     x = x+1
