@@ -529,6 +529,8 @@ def drone_1():
                      stateMt.gripper_check_clbk_1)
     rospy.Subscriber("/edrone1/camera/image_raw",
                      Image, img_proc.image_callback_1)
+    rospy.Subscriber('/spawn_info', UInt8, stateMt.spawn_clbk)
+
     rate = rospy.Rate(20.0)
 
     setpoints_1= [(0, 0, 3)]
@@ -605,7 +607,7 @@ def drone_1():
             i = 0
             k += 1
             previous_y_error = 0
-            setpoints_1.extend([(stateMt.local_pos_1.x,stateMt.local_pos_1.y,6),stateMt.row_spawn_sp1[k],(0,0,4)])
+            setpoints_1.extend([(stateMt.local_pos_1.x,stateMt.local_pos_1.y,7),stateMt.row_spawn_sp1[k],(0,0,4)])
             print('Setpoints list as of now', setpoints_1)
 
         if  i==2 and flag_flip_pos_vol == True :
@@ -621,10 +623,10 @@ def drone_1():
 
             if (m < 0):
                 flag_flip_pos_vol = False
-                if 150 < img_proc.position_aruco_x_0 < 250:
+                if 150 < img_proc.position_aruco_x_1 < 250:
                     print('publishing set pt to decrease height to 1m')
-                    pos_1.pose.position.x = stateMt.local_pos_0.x
-                    pos_1.pose.position.y = stateMt.local_pos_0.y
+                    pos_1.pose.position.x = stateMt.local_pos_1.x
+                    pos_1.pose.position.y = stateMt.local_pos_1.y
                     pos_1.pose.position.z = 1.5
                     local_pos_pub_1.publish(pos_1)
                     rospy.sleep(5)
@@ -718,6 +720,8 @@ def drone_1():
                 print("d1 Reached goal")
                 while x == 0:
                     print(k)
+                    print(stateMt.row_spawn_sp1)
+                    print(stateMt.row_spawn_sp1[k])
                     setpoints_1.extend([stateMt.row_spawn_sp1[k],(0,4,4)])
                     print('after reaching goal setpoints are', setpoints_1)
                     x = x+1
