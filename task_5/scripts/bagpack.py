@@ -174,7 +174,7 @@ class stateMoniter:
 
             else:
                 drop_pt = tuple(
-                    map(lambda i, j: i-j, self.blue_truck_seq[self.bt_i], (-61, 1, 0)))
+                    map(lambda i, j: i-j, self.blue_truck_seq[self.bt_i], (-1, 61, 0)))
                 final_array = [(drop_pt[0], drop_pt[1], 7),
                                drop_pt, (drop_pt[0], drop_pt[1], 7)]
 
@@ -188,7 +188,7 @@ class stateMoniter:
 
             else:
                 drop_pt = tuple(
-                    map(lambda i, j: i-j, self.red_truck_seq[self.rt_i], (-61, 1, 0)))
+                    map(lambda i, j: i-j, self.red_truck_seq[self.rt_i], (-1, 61, 0)))
                 final_array = [(drop_pt[0], drop_pt[1], 7),
                                drop_pt, (drop_pt[0], drop_pt[1], 7)]
 
