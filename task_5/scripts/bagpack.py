@@ -151,7 +151,7 @@ class stateMoniter:
         if drone_no == 0:
             return (-2, 4*(row_no-1), 3)
         else:
-            return (-2, 4*(row_no-15), 3.5)
+            return (-2, 4*(row_no-16), 3.5)
 
     def spawn_clbk(self, msg):
         if self.spawn_count % 2 == 0:
