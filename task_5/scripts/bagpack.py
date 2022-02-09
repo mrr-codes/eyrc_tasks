@@ -433,7 +433,7 @@ def drone_0():
 
                 pos_0.pose.position.x = img_proc.box_setpoint[0]
                 pos_0.pose.position.y = img_proc.box_setpoint[1]
-                pos_0.pose.position.z = 3
+                pos_0.pose.position.z = 1
                 local_pos_pub_0.publish(pos_0)
                 ofb_ctl.setAutoLandMode_0()
                 print('d0 Attempted to land c=', str(land_count))
@@ -653,8 +653,8 @@ def drone_1():
                 print('d1 Box is at ', img_proc.box_setpoint)
                 
                 pos_1.pose.position.x = img_proc.box_setpoint[0]
-                pos_1.pose.position.y = img_proc.box_setpoint[1]-0.1
-                pos_1.pose.position.z = 3
+                pos_1.pose.position.y = img_proc.box_setpoint[1]
+                pos_1.pose.position.z = 1
                 local_pos_pub_1.publish(pos_1)
                 ofb_ctl.setAutoLandMode_1()
                 print('d1 Attempted to land c=', str(land_count))
@@ -683,7 +683,7 @@ def drone_1():
                 flag1 = False
                 local_pos_pub_1.publish(pos_1)
 
-                truck_pts = stateMt.calculate_truck_point(box_id, 0)
+                truck_pts = stateMt.calculate_truck_point(box_id, 1)
                 setpoints_1.extend(
                     [truck_pts[0], truck_pts[1], truck_pts[2], (0, 0, 0)])
                 print('d1 Setpoints list as of now', setpoints_1)
