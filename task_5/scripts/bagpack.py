@@ -279,7 +279,7 @@ class image_processing:
                 self.position_aruco_x_1 = self.centre[0]
                 self.position_aruco_y_1 = self.centre[1]
                 self.bcorner_1 = self.bcorner_1
-                self.exo_rad_1=math.sqrt((self.bcorner_0[0]-self.position_aruco_x_0)**2+(self.bcorner_0[1]-self.position_aruco_y_0)**2)
+                self.exo_rad_1=math.sqrt((self.bcorner_1[0]-self.position_aruco_x_1)**2+(self.bcorner_1[1]-self.position_aruco_y_1)**2)
                 cv2.circle(self.img,(int(self.position_aruco_x_1),int(self.position_aruco_y_1)),radius=abs(int(self.exo_rad_1)),color= (0,225,0),thickness=2)           
                 
             cv2.imshow('check_frame_1', self.img)
