@@ -382,19 +382,19 @@ def drone_0():
         reached = check_position_0()
 
         if i > 5 and (len(setpoints_0)-1):
-            print('clearing spts.')
+            print('d0 clearing spts.')
             setpoints_0.clear()
             i = 0
             k += 1
             previous_y_error = 0
             setpoints_0.extend([(stateMt.local_pos_0.x,stateMt.local_pos_0.y,6),stateMt.row_spawn_sp0[k],(0,0,4)])
-            print('Setpoints list as of now', setpoints_0)
+            print('d0 Setpoints list as of now', setpoints_0)
 
         if  i==2 and flag_flip_pos_vol == True :
             print(i)
             box_dropped = False
             m = -1
-            print("setting m to -1")
+            print("d0 setting m to -1")
 
         if len(img_proc.Detected_ArUco_markers_0) > 0 and box_dropped == False:
 
@@ -404,9 +404,9 @@ def drone_0():
             if (m < 0):
                 flag_flip_pos_vol = False
                 if 150 < img_proc.position_aruco_x_0 < 250:
-                    print('publishing set pt to decrease height to 1m')
+                    print('d0 publishing set pt to decrease height to 1m')
                     pos_0.pose.position.x = stateMt.local_pos_0.x
-                    pos_0.pose.position.y = stateMt.row_spawn_sp0[k][1]
+                    pos_0.pose.position.y = stateMt.local_pos_0.y
                     pos_0.pose.position.z = 1.5
                     local_pos_pub_0.publish(pos_0)
                     rospy.sleep(5)
@@ -438,15 +438,18 @@ def drone_0():
                 local_pos_pub_0.publish(pos_0)
                 ofb_ctl.setAutoLandMode_0()
                 print('d0 Attempted to land c=', str(land_count))
-                rospy.sleep(12)
-                print("d0 Gripping the box")
-                ofb_ctl.gripper_activate_0(True)
+                # rospy.sleep(12)
+                # print("d0 Gripping the box")
+                # ofb_ctl.gripper_activate_0(True)
+                while not stateMt.check_gripper_0 == 'True':
+                    ofb_ctl.gripper_activate_0(True)
+                    
                 if stateMt.check_gripper_0 == 'True':
                     print('d0 The box has been gripped')
                     land_count += 1
                     box_dropped = True
                 else:
-                    print('d0 The box can not be gripped')
+                    print('d0 The box cannot yet be gripped')
 
                 img_proc.aruco_thresh_bool = False
                 # dummy_points_0()
@@ -500,7 +503,7 @@ def drone_0():
                 print("d0 Reached goal")
                 while x == 0:
                     setpoints_0.extend([stateMt.row_spawn_sp0[k],(0,4,4)])
-                    print('after reaching goal setpoints are', setpoints_0)
+                    print('d0 after reaching goal setpoints are', setpoints_0)
                     x = x+1
 
                 i = i+1
@@ -603,19 +606,19 @@ def drone_1():
         reached = check_position_1()
 
         if i > 5 and (len(setpoints_1)-1):
-            print('clearing spts.')
+            print('d1 clearing spts.')
             setpoints_1.clear()
             i = 0
             k += 1
             previous_y_error = 0
             setpoints_1.extend([(stateMt.local_pos_1.x,stateMt.local_pos_1.y,7),stateMt.row_spawn_sp1[k],(0,0,4)])
-            print('Setpoints list as of now', setpoints_1)
+            print('d1 Setpoints list as of now', setpoints_1)
 
         if  i==2 and flag_flip_pos_vol == True :
             print(i)
             box_dropped = False
             m = -1
-            print("setting m to -1")
+            print("d1 setting m to -1")
 
         if len(img_proc.Detected_ArUco_markers_1) > 0 and box_dropped == False:
             
@@ -625,9 +628,9 @@ def drone_1():
             if (m < 0):
                 flag_flip_pos_vol = False
                 if 150 < img_proc.position_aruco_x_1 < 250:
-                    print('publishing set pt to decrease height to 1m')
+                    print('d1 publishing set pt to decrease height to 1m')
                     pos_1.pose.position.x = stateMt.local_pos_1.x
-                    pos_1.pose.position.y = stateMt.row_spawn_sp1[k][1]
+                    pos_1.pose.position.y = stateMt.local_pos_1.y
                     pos_1.pose.position.z = 1.5
                     local_pos_pub_1.publish(pos_1)
                     rospy.sleep(5)
@@ -659,15 +662,17 @@ def drone_1():
                 local_pos_pub_1.publish(pos_1)
                 ofb_ctl.setAutoLandMode_1()
                 print('d1 Attempted to land c=', str(land_count))
-                rospy.sleep(12)
-                print("d1 Gripping the box")
-                ofb_ctl.gripper_activate_1(True)
+                # rospy.sleep(12)
+                # print("d1 Gripping the box")
+                # ofb_ctl.gripper_activate_1(True)
+                while not stateMt.check_gripper_1 == 'True':
+                    ofb_ctl.gripper_activate_1(True)
                 if stateMt.check_gripper_1 == 'True':
                     print('d1 The box has been gripped')
                     land_count += 1
                     box_dropped = True
                 else:
-                    print('d1 The box can not be gripped')
+                    print('d1 The box cannot yet be gripped')
 
                 img_proc.aruco_thresh_bool = False
                 #dummy_points_1()
