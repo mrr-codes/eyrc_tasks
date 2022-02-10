@@ -406,7 +406,7 @@ def drone_0():
                 if 150 < img_proc.position_aruco_x_0 < 250:
                     print('publishing set pt to decrease height to 1m')
                     pos_0.pose.position.x = stateMt.local_pos_0.x
-                    pos_0.pose.position.y = stateMt.local_pos_0.y
+                    pos_0.pose.position.y = stateMt.row_spawn_sp0[k][1]
                     pos_0.pose.position.z = 1.5
                     local_pos_pub_0.publish(pos_0)
                     rospy.sleep(5)
@@ -414,7 +414,7 @@ def drone_0():
             if m == 0 :
                 vel_0.twist.linear.x = (
                     ((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/550)
-                vel_0.twist.linear.y = -((((img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/400) - (
+                vel_0.twist.linear.y = -((((img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/250) - (
                     img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z) - previous_y_error)/40)
                 print('d0 Box detected, the x and y velocities are:',
                       vel_0.twist.linear.x, vel_0.twist.linear.y)
@@ -627,7 +627,7 @@ def drone_1():
                 if 150 < img_proc.position_aruco_x_1 < 250:
                     print('publishing set pt to decrease height to 1m')
                     pos_1.pose.position.x = stateMt.local_pos_1.x
-                    pos_1.pose.position.y = stateMt.local_pos_1.y
+                    pos_1.pose.position.y = stateMt.row_spawn_sp1[k][1]
                     pos_1.pose.position.z = 1.5
                     local_pos_pub_1.publish(pos_1)
                     rospy.sleep(5)
@@ -635,7 +635,7 @@ def drone_1():
             if m==0:
                 vel_1.twist.linear.x = (
                     ((img_proc.position_aruco_x_1 - 200)*stateMt.local_pos_1.z)/550)
-                vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/400) - (
+                vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/250) - (
                     img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z) - previous_y_error)/40)
                 print('d1 Box detected, the x and y velocities are:',
                     vel_1.twist.linear.x, vel_1.twist.linear.y)
