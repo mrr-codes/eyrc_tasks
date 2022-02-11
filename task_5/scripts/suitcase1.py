@@ -512,9 +512,11 @@ def drone_0():
             if i > 3 and i == (len(setpoints_0) - 2):
                 ofb_ctl.setAutoLandMode_0()
                 while not stateMt.local_pos_0.z < 1.8:
-                    ofb_ctl.gripper_activate_0(False)
-                    box_dropped = True
-                    print("d0 Releasing box")
+                    print("dummy_stuff")
+
+                ofb_ctl.gripper_activate_0(False)
+                box_dropped = True
+                print("d0 Releasing box")
 
         rate.sleep()
 
