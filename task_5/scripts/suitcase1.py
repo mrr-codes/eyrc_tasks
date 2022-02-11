@@ -177,7 +177,7 @@ class stateMoniter:
                 drop_pt = tuple(
                     map(lambda i, j: i-j, self.blue_truck_seq[self.bt_i], (-1, 61, 0)))
                 final_array = [(drop_pt[0], drop_pt[1], 7),
-                               drop_pt, (drop_pt[0], drop_pt[1], 7)]
+                                (drop_pt[0], drop_pt[1], 7)]
 
         else:
             self.rt_i += 1
@@ -190,7 +190,7 @@ class stateMoniter:
                 drop_pt = tuple(
                     map(lambda i, j: i-j, self.red_truck_seq[self.rt_i], (-1, 61, 0)))
                 final_array = [(drop_pt[0], drop_pt[1], 7),
-                               drop_pt, (drop_pt[0], drop_pt[1], 7)]
+                               (drop_pt[0], drop_pt[1], 7)]
 
         return final_array
 
@@ -385,7 +385,7 @@ def drone_0():
             setpoints_0.clear()
             i = 0
             k += 1
-            vi = 0.05
+            vi = 0.07
             previous_y_error = 0
             setpoints_0.extend([(stateMt.local_pos_0.x,stateMt.local_pos_0.y,6),stateMt.row_spawn_sp0[k],(0,0,4)])
             print('d0 Setpoints list as of now', setpoints_0)
@@ -404,6 +404,8 @@ def drone_0():
             if (m < 0):
                 flag_flip_pos_vol = False
                 if 150 < img_proc.position_aruco_x_0 < 250:
+                    if stateMt.local_pos_0.x> 3:
+                        vi = 0.1
                     print('d0 publishing set pt to decrease height to 1m')
                     pos_0.pose.position.x = stateMt.local_pos_0.x
                     pos_0.pose.position.y = stateMt.row_spawn_sp0[k][1]
@@ -468,7 +470,7 @@ def drone_0():
                 
                 truck_pts = stateMt.calculate_truck_point(box_id, 0)
                 setpoints_0.extend(
-                    [truck_pts[0], truck_pts[1], truck_pts[2], (0, 0, 0)])
+                    [truck_pts[0], truck_pts[1], (0, 0, 0)])
                 print('d0 Setpoints list as of now', setpoints_0)
 
             #previous_x_error = img_proc.position_aruco_x_0 - 200
@@ -595,7 +597,7 @@ def drone_1():
     flag1 = False
     previous_x_error = 0
     previous_y_error = 0
-    vi = 0.05
+    vi = 0.07
     box_dropped = False
     flag_flip_pos_vol = False
     k = 0
@@ -609,7 +611,7 @@ def drone_1():
         ofb_ctl.offboard_set_mode_1()
         reached = check_position_1()
 
-        if i > 5 and (len(setpoints_1)-1):
+        if i > 4 and (len(setpoints_1)-1):
             print('d1 clearing spts.')
             setpoints_1.clear()
             i = 0
@@ -632,6 +634,8 @@ def drone_1():
             if (m < 0):
                 flag_flip_pos_vol = False
                 if 150 < img_proc.position_aruco_x_1 < 250:
+                    if stateMt.local_pos_1.x > 3:
+                        vi = 0.1
                     print('d1 publishing set pt to decrease height to 1m')
                     pos_1.pose.position.x = stateMt.local_pos_1.x
                     pos_1.pose.position.y = stateMt.row_spawn_sp1[k][1]
@@ -695,7 +699,7 @@ def drone_1():
 
                 truck_pts = stateMt.calculate_truck_point(box_id, 1)
                 setpoints_1.extend(
-                    [truck_pts[0], truck_pts[1], truck_pts[2], (0, 0, 0)])
+                    [truck_pts[0], truck_pts[1],(0, 0, 0)])
                 print('d1 Setpoints list as of now', setpoints_1)
 
             #previous_x_error = img_proc.position_aruco_x_1 - 200
@@ -739,7 +743,10 @@ def drone_1():
                 i = i+1
                 print('d1 i increased to ', i, 'after reaching goal')
 
-            if i > 4 and i == (len(setpoints_1) - 2):
+            if i > 3 and i == (len(setpoints_1) - 2):
+                ofb_ctl.setAutoLandMode_1()
+                while not stateMt.local_pos_1.z<1.8:
+                    print("dummy_stuff_1")
                 ofb_ctl.gripper_activate_1(False)
                 box_dropped = True
                 print("d1 Releasing box")
