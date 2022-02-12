@@ -151,7 +151,7 @@ class stateMoniter:
         if drone_no == 0:
             return (-1, 4*(row_no-1), 3)
         else:
-            return (-1, 4*(row_no-16), 3.5)
+            return (-1, 4*(row_no-16), 3)
 
     def spawn_clbk(self, msg):
         if self.spawn_count % 2 == 0:
@@ -370,7 +370,7 @@ def drone_0():
                         stateMt.local_pos_0.y,
                         stateMt.local_pos_0.z))
         print('d0', np.linalg.norm(desired - pos))
-        if (i > 3 and i == (len(setpoints_0) - 3)) or (1<i<3 and i==(len(setpoints_0)-1)):
+        if (i > 3 and i == (len(setpoints_0) - 3)) or (0<i<3 and i==(len(setpoints_0)-1)):
             return np.linalg.norm(desired - pos) < 0.2
         else:
             return np.linalg.norm(desired - pos) < 0.5
@@ -385,7 +385,7 @@ def drone_0():
             setpoints_0.clear()
             i = 0
             k += 1
-            vi = 0.07
+            vi = 0.05
             previous_y_error = 0
             setpoints_0.extend([(stateMt.local_pos_0.x,stateMt.local_pos_0.y,6),stateMt.row_spawn_sp0[k],(0,0,4)])
             print('d0 Setpoints list as of now', setpoints_0)
@@ -495,7 +495,7 @@ def drone_0():
             if flag_flip_pos_vol == True:
                 print('d0 publishing row start velocity')
                 local_vel_pub_0.publish(vel_0)
-                box_dropped = False
+                #box_dropped = False
 
             else:
                 print('d0 Setpoint published is', pos_0.pose.position.x,
@@ -517,11 +517,11 @@ def drone_0():
                 while not stateMt.local_pos_0.z < 2.0:
                     vel_0.twist.linear.x = (truck_pts[0][0] - stateMt.local_pos_0.x)             
                     vel_0.twist.linear.y = (truck_pts[0][1] - stateMt.local_pos_0.y)
-                    vel_0.twist.linear.z = -1
+                    vel_0.twist.linear.z = -0.8
                     local_vel_pub_0.publish(vel_0)
                     print("d0 dummy_stuff uwu")
-
-                ofb_ctl.gripper_activate_0(False)
+                for z in range(0,10):
+                    ofb_ctl.gripper_activate_0(False)
                 box_dropped = True
                 print("d0 Releasing box")
 
@@ -592,7 +592,7 @@ def drone_1():
     previous_x_error = 0
     previous_y_error = 0
     vi = 0.07
-    box_dropped = True
+    box_dropped = False
     flag_flip_pos_vol = False
     k = 0
     m = -1
@@ -605,7 +605,7 @@ def drone_1():
                         stateMt.local_pos_1.y,
                         stateMt.local_pos_1.z))
         print('d0', np.linalg.norm(desired - pos))
-        if (i > 3 and i == (len(setpoints_1) - 3)) or (1<i<3 and i==(len(setpoints_1)-1)):
+        if (i > 3 and i == (len(setpoints_1) - 3)) or (0<i<3 and i==(len(setpoints_1)-1)):
             return np.linalg.norm(desired - pos) < 0.2
         else:
             return np.linalg.norm(desired - pos) < 0.5
@@ -729,7 +729,7 @@ def drone_1():
             if flag_flip_pos_vol == True:
                 print('d1 publishing row start velocity')
                 local_vel_pub_1.publish(vel_1)
-                box_dropped = False
+                #box_dropped = False
 
             else:
                 print('d1 Setpoint published is', pos_1.pose.position.x,
@@ -754,10 +754,10 @@ def drone_1():
                 while not stateMt.local_pos_1.z<2.0:
                     vel_1.twist.linear.x = (truck_pts[0][0] - stateMt.local_pos_1.x)             
                     vel_1.twist.linear.y = (truck_pts[0][1] - stateMt.local_pos_1.y)
-                    vel_1.twist.linear.z = -1
+                    vel_1.twist.linear.z = -0.8
                     local_vel_pub_1.publish(vel_1)                
-                    
-                ofb_ctl.gripper_activate_1(False)
+                for z in range(0,10):    
+                    ofb_ctl.gripper_activate_1(False)
                 box_dropped = True
                 print("d1 Releasing box")
 
