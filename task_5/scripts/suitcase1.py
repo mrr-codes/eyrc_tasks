@@ -149,9 +149,9 @@ class stateMoniter:
 
     def calculate_row_start(self, row_no, drone_no):
         if drone_no == 0:
-            return (-2, 4*(row_no-1), 3)
+            return (0, 4*(row_no-1), 3)
         else:
-            return (-2, 4*(row_no-16), 3.5)
+            return (0, 4*(row_no-16), 3.5)
 
     def spawn_clbk(self, msg):
         if self.spawn_count % 2 == 0:
@@ -368,7 +368,7 @@ def drone_0():
     previous_x_error = 0
     previous_y_error = 0
     vi = 0
-    box_dropped = False
+    box_dropped = True
     flag_flip_pos_vol = False
     k = 0
     m = -1
@@ -415,7 +415,7 @@ def drone_0():
                     m += 1
             if m == 0 :
                 vel_0.twist.linear.x = (
-                    ((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/550)
+                    ((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/400)
                 vel_0.twist.linear.y = -((((img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/400) - (
                     img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z) - previous_y_error)/40)-vi
                 print('d0 Box detected, the x and y velocities are:',
@@ -495,6 +495,7 @@ def drone_0():
             if flag_flip_pos_vol == True:
                 print('d0 publishing row start velocity')
                 local_vel_pub_0.publish(vel_0)
+                box_dropped = False
 
             else:
                 print('d0 Setpoint published is', pos_0.pose.position.x,
@@ -512,9 +513,13 @@ def drone_0():
                 print('d0 i increased to ', i, 'after reaching goal')
 
             if i > 3 and i == (len(setpoints_0) - 2):
-                ofb_ctl.setAutoLandMode_0()
+                 
                 while not stateMt.local_pos_0.z < 1.8:
-                    print("dummy_stuff")
+                    vel_0.twist.linear.x = (truck_pts[0][0] - stateMt.local_pos_0.x)             
+                    vel_0.twist.linear.y = (truck_pts[0][1] - stateMt.local_pos_0.y)
+                    vel_0.twist.linear.z = -0.8
+                    local_vel_pub_0.publish(vel_0)
+                    print("d0 dummy_stuff uwu")
 
                 ofb_ctl.gripper_activate_0(False)
                 box_dropped = True
@@ -598,7 +603,7 @@ def drone_1():
     previous_x_error = 0
     previous_y_error = 0
     vi = 0.07
-    box_dropped = False
+    box_dropped = True
     flag_flip_pos_vol = False
     k = 0
     m = -1
@@ -645,7 +650,7 @@ def drone_1():
                     m += 1
             if m==0:
                 vel_1.twist.linear.x = (
-                    ((img_proc.position_aruco_x_1 - 200)*stateMt.local_pos_1.z)/550)
+                    ((img_proc.position_aruco_x_1 - 200)*stateMt.local_pos_1.z)/400)
                 vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/400) - (
                     img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z) - previous_y_error)/40)-vi
                 print('d1 Box detected, the x and y velocities are:',
@@ -724,6 +729,7 @@ def drone_1():
             if flag_flip_pos_vol == True:
                 print('d1 publishing row start velocity')
                 local_vel_pub_1.publish(vel_1)
+                box_dropped = False
 
             else:
                 print('d1 Setpoint published is', pos_1.pose.position.x,
@@ -744,9 +750,13 @@ def drone_1():
                 print('d1 i increased to ', i, 'after reaching goal')
 
             if i > 3 and i == (len(setpoints_1) - 2):
-                ofb_ctl.setAutoLandMode_1()
+            
                 while not stateMt.local_pos_1.z<1.8:
-                    print("dummy_stuff_1")
+                    vel_1.twist.linear.x = (truck_pts[0][0] - stateMt.local_pos_1.x)             
+                    vel_1.twist.linear.y = (truck_pts[0][1] - stateMt.local_pos_1.y)
+                    vel_1.twist.linear.z = -1
+                    local_vel_pub_1.publish(vel_1)                
+                    
                 ofb_ctl.gripper_activate_1(False)
                 box_dropped = True
                 print("d1 Releasing box")
