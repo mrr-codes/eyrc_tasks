@@ -112,6 +112,7 @@ class stateMoniter:
         self.row_list = list()
         self.bt_i = -1  # neeed to write reset condition
         self.rt_i = -1
+        self.box_counts = dict()
 
         self.blue_truck = np.array([[(13.85, -7.4, 1.84), (13.85, -6.17, 1.84), (13.85, -4.95, 1.84)], [(14.7, -7.4, 1.84), (14.7, -6.17, 1.84),
                                    (14.7, -4.95, 1.84)], [(15.55, -7.4, 1.84), (15.55, -6.17, 1.84), (15.55, -4.95, 1.84)], [(16.4, -7.4, 1.84), (16.4, -6.17, 1.84), (16.4, -4.95, 1.84)]])
@@ -124,6 +125,7 @@ class stateMoniter:
 
         self.red_truck_seq = [self.red_truck[1, 0],self.red_truck[2, 1],self.red_truck[1,2],
         self.red_truck[3,0],self.red_truck[1,1],self.red_truck[3,1],self.red_truck[2,2],self.red_truck[2,0],self.red_truck[2,1]]
+
 
 
     def stateCb_0(self, msg):
@@ -149,23 +151,38 @@ class stateMoniter:
         self.check_gripper_1 = msg.data
 
     def calculate_row_start(self, row_no, drone_no):
-
+        boxes_in_row = self.box_counts[row_no]
         if drone_no == 0:
-            if row_no in self.row_list:
-                self.row_list.append(row_no)
+            if boxes_in_row > 3:
+                boxes_in_row-=1
+                return (21, 4*(row_no-1), 3)
+            elif boxes_in_row > 2:
+                boxes_in_row-=1
+                return (13, 4*(row_no-1), 3)
+            elif boxes_in_row > 1:
+                boxes_in_row-=1
                 return (5, 4*(row_no-1), 3)
             else:
-                self.row_list.append(row_no)
+                boxes_in_row-=1
                 return(0,4*(row_no-1),3)
         else:
-            if row_no in self.row_list:
-                self.row_list.append(row_no)
+            if boxes_in_row > 3:
+                boxes_in_row-=1
+                return (21, 4*(row_no-16), 3.5)
+            elif boxes_in_row > 2:
+                boxes_in_row-=1
+                return (13, 4*(row_no-16), 3.5)
+            elif boxes_in_row > 1:
+                boxes_in_row-=1
                 return (5, 4*(row_no-16), 3.5)
             else:
-                self.row_list.append(row_no)
+                boxes_in_row-=1
                 return(0,4*(row_no-16),3.5)
+
     def spawn_clbk(self, msg):
-        
+
+        self.box_counts[msg.data] = self.box_counts.get(msg.data, 0) + 1
+
         if self.spawn_count % 2 == 0:
             self.row_spawn_sp0.append(self.calculate_row_start(msg.data, 0))
             print('d0 Row_spawn list',self.row_spawn_sp0)
@@ -383,7 +400,7 @@ def drone_0():
     vi = 0
     box_dropped = True
     flag_flip_pos_vol = False
-    k = 0
+    k = -1
     m = -1
     x = 0
     ofb_ctl.setArm_0()
@@ -397,10 +414,11 @@ def drone_0():
             print('d0 clearing spts.')
             setpoints_0.clear()
             i = 0
-            k += 1
-            vi = 0.07
+            #k = k - 1                            #hello
+            vi = 0.07                             #it's me
             previous_y_error = 0
             setpoints_0.extend([(stateMt.local_pos_0.x,stateMt.local_pos_0.y,6),stateMt.row_spawn_sp0[k],(0,0,4)])
+            stateMt.row_spawn_sp0.pop()
             print('d0 Setpoints list as of now', setpoints_0)
 
         if  i==2 and flag_flip_pos_vol == True :
@@ -519,6 +537,8 @@ def drone_0():
                 print("d0 Reached goal")
                 while x == 0:
                     setpoints_0.extend([stateMt.row_spawn_sp0[k],(0,4,4)])
+                    stateMt.row_spawn_sp0.pop()
+                    
                     print('d0 after reaching goal setpoints are', setpoints_0)
                     x = x+1
 
@@ -616,7 +636,7 @@ def drone_1():
     vi = 0.07
     box_dropped = True
     flag_flip_pos_vol = False
-    k = 0
+    k = -1
     m = -1
     x = 0
     ofb_ctl.setArm_1()
@@ -631,9 +651,10 @@ def drone_1():
             print('d1 clearing spts.')
             setpoints_1.clear()
             i = 0
-            k += 1
+            #k += 1
             previous_y_error = 0
             setpoints_1.extend([(stateMt.local_pos_1.x,stateMt.local_pos_1.y,7),stateMt.row_spawn_sp1[k],(0,0,4)])
+            stateMt.row_spawn_sp1.pop()
             print('d1 Setpoints list as of now', setpoints_1)
 
         if  i==2 and flag_flip_pos_vol == True :
@@ -754,6 +775,7 @@ def drone_1():
                     print(stateMt.row_spawn_sp1)
                     print(stateMt.row_spawn_sp1[k])
                     setpoints_1.extend([stateMt.row_spawn_sp1[k],(0,4,4)])
+                    stateMt.row_spawn_sp1.pop()
                     print('after reaching goal setpoints are', setpoints_1)
                     x = x+1
 
