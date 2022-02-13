@@ -109,6 +109,7 @@ class stateMoniter:
         self.row_spawn_sp0 = list()
         self.row_spawn_sp1 = list()
         self.spawn_count = 0
+        self.row_list = list()
         self.bt_i = -1  # neeed to write reset condition
         self.rt_i = -1
 
@@ -148,12 +149,23 @@ class stateMoniter:
         self.check_gripper_1 = msg.data
 
     def calculate_row_start(self, row_no, drone_no):
-        if drone_no == 0:
-            return (0, 4*(row_no-1), 3)
-        else:
-            return (0, 4*(row_no-16), 3.5)
 
+        if drone_no == 0:
+            if row_no in self.row_list:
+                self.row_list.append(row_no)
+                return (5, 4*(row_no-1), 3)
+            else:
+                self.row_list.append(row_no)
+                return(0,4*(row_no-1),3)
+        else:
+            if row_no in self.row_list:
+                self.row_list.append(row_no)
+                return (5, 4*(row_no-16), 3.5)
+            else:
+                self.row_list.append(row_no)
+                return(0,4*(row_no-16),3.5)
     def spawn_clbk(self, msg):
+        
         if self.spawn_count % 2 == 0:
             self.row_spawn_sp0.append(self.calculate_row_start(msg.data, 0))
             print('d0 Row_spawn list',self.row_spawn_sp0)
@@ -359,9 +371,10 @@ def drone_0():
                         stateMt.local_pos_0.y,
                         stateMt.local_pos_0.z))
         print('d0', np.linalg.norm(desired - pos))
-
-        return np.linalg.norm(desired - pos) < 0.2
-
+        if (i > 3 and i == (len(setpoints_0) - 3)) or (i==1):
+            return np.linalg.norm(desired - pos) < 0.2
+        else:
+            return np.linalg.norm(desired - pos) < 0.5
     
     land_count = 0 
     flag1 = False
@@ -415,7 +428,7 @@ def drone_0():
                     m += 1
             if m == 0 :
                 vel_0.twist.linear.x = (
-                    ((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/400)
+                    ((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/300)
                 vel_0.twist.linear.y = -((((img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/400) - (
                     img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z) - previous_y_error)/40)-vi
                 print('d0 Box detected, the x and y velocities are:',
@@ -514,14 +527,14 @@ def drone_0():
 
             if i > 3 and i == (len(setpoints_0) - 2):
                  
-                while not stateMt.local_pos_0.z < 1.8:
+                while not stateMt.local_pos_0.z < 2.0:
                     vel_0.twist.linear.x = (truck_pts[0][0] - stateMt.local_pos_0.x)             
                     vel_0.twist.linear.y = (truck_pts[0][1] - stateMt.local_pos_0.y)
                     vel_0.twist.linear.z = -0.8
                     local_vel_pub_0.publish(vel_0)
                     print("d0 dummy_stuff uwu")
-
-                ofb_ctl.gripper_activate_0(False)
+                for o in range(5):
+                    ofb_ctl.gripper_activate_0(False)
                 box_dropped = True
                 print("d0 Releasing box")
 
@@ -594,8 +607,10 @@ def drone_1():
                         stateMt.local_pos_1.y,
                         stateMt.local_pos_1.z))
         print('d1', np.linalg.norm(desired - pos))
-
-        return np.linalg.norm(desired - pos) < 0.2
+        if (i > 3 and i == (len(setpoints_1) - 3)) or (i==1):
+            return np.linalg.norm(desired - pos) < 0.2
+        else:
+            return np.linalg.norm(desired - pos) < 0.5
 
     
     land_count = 0 
@@ -650,7 +665,7 @@ def drone_1():
                     m += 1
             if m==0:
                 vel_1.twist.linear.x = (
-                    ((img_proc.position_aruco_x_1 - 200)*stateMt.local_pos_1.z)/400)
+                    ((img_proc.position_aruco_x_1 - 200)*stateMt.local_pos_1.z)/300)
                 vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/400) - (
                     img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z) - previous_y_error)/40)-vi
                 print('d1 Box detected, the x and y velocities are:',
@@ -751,13 +766,13 @@ def drone_1():
 
             if i > 3 and i == (len(setpoints_1) - 2):
             
-                while not stateMt.local_pos_1.z<1.8:
-                    vel_1.twist.linear.x = (truck_pts[0][0] - stateMt.local_pos_1.x)             
+                while not stateMt.local_pos_1.z<2.0:
+                    vel_1.twist.linear.x = (truck_pts[0][0] - stateMt.local_pos_1.x)          
                     vel_1.twist.linear.y = (truck_pts[0][1] - stateMt.local_pos_1.y)
-                    vel_1.twist.linear.z = -1
+                    vel_1.twist.linear.z = -0.8
                     local_vel_pub_1.publish(vel_1)                
-                    
-                ofb_ctl.gripper_activate_1(False)
+                for o in range(5):    
+                    ofb_ctl.gripper_activate_1(False)
                 box_dropped = True
                 print("d1 Releasing box")
 
