@@ -439,7 +439,7 @@ def drone_0():
                         vi = 0.1
                     print('d0 publishing set pt to decrease height to 1m')
                     pos_0.pose.position.x = stateMt.local_pos_0.x
-                    pos_0.pose.position.y = stateMt.row_spawn_sp0[k][1]
+                    pos_0.pose.position.y = stateMt.local_pos_0.y
                     pos_0.pose.position.z = 1.5
                     local_pos_pub_0.publish(pos_0)
                     rospy.sleep(5)
@@ -675,7 +675,7 @@ def drone_1():
                         vi = 0.1
                     print('d1 publishing set pt to decrease height to 1m')
                     pos_1.pose.position.x = stateMt.local_pos_1.x
-                    pos_1.pose.position.y = stateMt.row_spawn_sp1[k][1]
+                    pos_1.pose.position.y = stateMt.local_pos_1.y
                     pos_1.pose.position.z = 1.5
                     local_pos_pub_1.publish(pos_1)
                     rospy.sleep(5)
