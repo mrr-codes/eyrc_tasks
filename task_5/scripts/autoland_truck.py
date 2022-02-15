@@ -403,6 +403,7 @@ def drone_0():
     k = -1
     m = -1
     x = 0
+    not_first=False
     ofb_ctl.setArm_0()
     while not rospy.is_shutdown():
 
@@ -412,6 +413,7 @@ def drone_0():
 
         if i > 4 and (len(setpoints_0)-1):
             print('d0 clearing spts.')
+            not_first = True
             setpoints_0.clear()
             i = 0
             #k = k - 1                            #hello
@@ -432,6 +434,7 @@ def drone_0():
             flag_flip_pos_vol = False
             img_proc.aruco_thresh_bool = True
             
+
             if (m < 0):
                 flag_flip_pos_vol = False
                 if 150 < img_proc.position_aruco_x_0 < 250:
@@ -515,7 +518,8 @@ def drone_0():
             pos_0.pose.position.y = setpoints_0[i][1]
             pos_0.pose.position.z = setpoints_0[i][2]
 
-            if reached == True and (setpoints_0[i][1] != 0 and abs(setpoints_0[i][1]) % 4 == 0):
+            if reached == True and not_first == True and (abs(setpoints_0[i][1]) % 4 == 0) :
+                print('not_first val is',not_first)
                 print('d0 At row start velocity control')
                 vel_0.twist.linear.x = 1.5
                 vel_0.twist.linear.y = 0
@@ -541,14 +545,15 @@ def drone_0():
                     
                     print('d0 after reaching goal setpoints are', setpoints_0)
                     x = x+1
-                    rospy.sleep(10)
+                    rospy.sleep(5)
                 i = i+1
                 print('d0 i increased to ', i, 'after reaching goal')
 
             if i > 3 and i == (len(setpoints_0) - 2):
                 ofb_ctl.setAutoLandMode_0() 
                 while not stateMt.local_pos_0.z < 2.0:
-                    print("d0 dummy_stuff uwu")
+                    lol =1
+                    #print("d0 dummy_stuff uwu")
                 for o in range(5):
                     ofb_ctl.gripper_activate_0(False)
                 box_dropped = True
@@ -712,6 +717,7 @@ def drone_1():
                 # ofb_ctl.gripper_activate_1(True)
                 while not stateMt.check_gripper_1 == 'True':
                     ofb_ctl.gripper_activate_1(True)
+
                 if stateMt.check_gripper_1 == 'True':
                     print('d1 The box has been gripped')
                     land_count += 1
@@ -776,6 +782,7 @@ def drone_1():
                     print(stateMt.row_spawn_sp1[k])
                     setpoints_1.extend([stateMt.row_spawn_sp1[k],(0,4,4)])
                     pop_ele = stateMt.row_spawn_sp1.pop()
+                    
                     print('after reaching goal setpoints are', setpoints_1)
                     x = x+1
                     rospy.sleep(10)
@@ -785,7 +792,8 @@ def drone_1():
             if i > 3 and i == (len(setpoints_1) - 2):
                 ofb_ctl.setAutoLandMode_1()
                 while not stateMt.local_pos_1.z<2.0:
-                    print("dummy_stuff")              
+                    lol = 1 
+                    #print("dummy_stuff")              
                 for o in range(5):    
                     ofb_ctl.gripper_activate_1(False)
                 box_dropped = True
