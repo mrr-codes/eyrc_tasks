@@ -110,8 +110,10 @@ class stateMoniter:
         self.row_spawn_sp1 = list()
         self.spawn_count = 0
         self.row_list = list()
-        self.bt_i = -1  # neeed to write reset condition
-        self.rt_i = -1
+        self.bt_0 = -1  # neeed to write reset condition
+        self.rt_0 = -1
+        self.bt_1 = 0
+        self.rt_1 = 0
         self.box_counts = dict()
 
         self.blue_truck = np.array([[(13.85, -7.4, 1.84), (13.85, -6.17, 1.84), (13.85, -4.95, 1.84)], [(14.7, -7.4, 1.84), (14.7, -6.17, 1.84),
@@ -168,16 +170,16 @@ class stateMoniter:
         else:
             if boxes_in_row > 3:
                 boxes_in_row-=1
-                return (21, 4*(row_no-16), 3.5)
+                return (21, 4*(row_no-16), 3)
             elif boxes_in_row > 2:
                 boxes_in_row-=1
-                return (13, 4*(row_no-16), 3.5)
+                return (13, 4*(row_no-16), 3)
             elif boxes_in_row > 1:
                 boxes_in_row-=1
-                return (5, 4*(row_no-16), 3.5)
+                return (5, 4*(row_no-16), 3)
             else:
                 boxes_in_row-=1
-                return(0,4*(row_no-16),3.5)
+                return(0,4*(row_no-16),3)
 
     def spawn_clbk(self, msg):
 
@@ -195,29 +197,33 @@ class stateMoniter:
 
     def calculate_truck_point(self, id, drone_no):
         if id == 2:  # blue
-            self.bt_i += 1
+            
             if drone_no == 0:
+                self.bt_0 += 1
                 drop_pt = tuple(
-                    map(lambda i, j: i-j, self.blue_truck_seq[self.bt_i], (-1, 1, 0)))
+                    map(lambda i, j: i-j, self.blue_truck_seq[self.bt_0], (-1, 1, 0)))
                 final_array = [(drop_pt[0], drop_pt[1],6),
                                 (drop_pt[0], drop_pt[1],6)]
 
             else:
+                self.bt_1 -= 1
                 drop_pt = tuple(
-                    map(lambda i, j: i-j, self.blue_truck_seq[self.bt_i], (-1, 61, 0)))
+                    map(lambda i, j: i-j, self.blue_truck_seq[self.bt_1], (-1, 61, 0)))
                 final_array = [(drop_pt[0], drop_pt[1], 7),
                                 (drop_pt[0], drop_pt[1], 7)]
 
         else:
-            self.rt_i += 1
+            
             if drone_no == 0:
+                self.rt_0 += 1
                 drop_pt = tuple(
-                    map(lambda i, j: i-j, self.red_truck_seq[self.rt_i], (-1, 1, 0)))
+                    map(lambda i, j: i-j, self.red_truck_seq[self.rt_0], (-1, 1, 0)))
                 final_array = [(drop_pt[0], drop_pt[1], 6), (drop_pt[0], drop_pt[1], 6)]
 
             else:
+                self.rt_1 -= 1
                 drop_pt = tuple(
-                    map(lambda i, j: i-j, self.red_truck_seq[self.rt_i], (-1, 61, 0)))
+                    map(lambda i, j: i-j, self.red_truck_seq[self.rt_1], (-1, 61, 0)))
                 final_array = [(drop_pt[0], drop_pt[1], 7),
                                (drop_pt[0], drop_pt[1], 7)]
 
@@ -413,7 +419,6 @@ def drone_0():
 
         if i > 4 and (len(setpoints_0)-1):
             print('d0 clearing spts.')
-            not_first = True
             setpoints_0.clear()
             i = 0
             #k = k - 1                            #hello
@@ -518,8 +523,8 @@ def drone_0():
             pos_0.pose.position.y = setpoints_0[i][1]
             pos_0.pose.position.z = setpoints_0[i][2]
 
-            if reached == True and not_first == True and (abs(setpoints_0[i][1]) % 4 == 0) :
-                print('not_first val is',not_first)
+            if reached == True and x!=0 and (abs(setpoints_0[i][1]) % 4 == 0) :
+               # print('not_first val is',not_first)
                 print('d0 At row start velocity control')
                 vel_0.twist.linear.x = 1.5
                 vel_0.twist.linear.y = 0
@@ -539,7 +544,7 @@ def drone_0():
 
             if reached == True and flag1 == False:
                 print("d0 Reached goal")
-                while x == 0:
+                if x == 0:
                     setpoints_0.extend([stateMt.row_spawn_sp0[k],(0,4,4)])
                     pop_ele =stateMt.row_spawn_sp0.pop()
                     
@@ -547,6 +552,7 @@ def drone_0():
                     x = x+1
                     rospy.sleep(5)
                 i = i+1
+                #not_first = True
                 print('d0 i increased to ', i, 'after reaching goal')
 
             if i > 3 and i == (len(setpoints_0) - 2):
