@@ -428,7 +428,7 @@ def drone_0():
                     m += 1
             if m == 0 :
                 if (225-img_proc.position_aruco_y_0)<0:
-                    vi = 0.05
+                    vi = 0.1
                 else:
                     vi = 0
                 vel_0.twist.linear.x = (
@@ -667,7 +667,7 @@ def drone_1():
                     m += 1
             if m==0:
                 if (225-img_proc.position_aruco_y_1)<0:
-                    vi = 0.05
+                    vi = 0.2
                 else:
                     vi = 0
                 vel_1.twist.linear.x = (
