@@ -157,7 +157,7 @@ class stateMoniter:
         self.boxes_in_row = self.box_counts[row_no]
         if drone_no == 0:
             if self.boxes_in_row > 3:
-                return (20, 4*(row_no-1), 3)
+                return (19, 4*(row_no-1), 3)
             elif self.boxes_in_row > 2:
                 return (12, 4*(row_no-1), 3)
             elif self.boxes_in_row > 1:
@@ -165,12 +165,14 @@ class stateMoniter:
             else:
                 return(0,4*(row_no-1),3)
         else:
-            if self.boxes_in_row > 3:
-                return (20, 4*(row_no-16), 3)
+            if self.boxes_in_row > 4:
+                return (25, 4*(row_no-16), 3)
+            elif self.boxes_in_row > 3:
+                return (19, 4*(row_no-16), 3)
             elif self.boxes_in_row > 2:
                 return (13, 4*(row_no-16), 3)
             elif self.boxes_in_row > 1:
-                return (5, 4*(row_no-16), 3)
+                return (13, 4*(row_no-16), 3)
             else:
                 return(0,4*(row_no-16),3)
 
@@ -446,20 +448,22 @@ def drone_0():
                     m += 1
             if m == 0 :
                 if (225-img_proc.position_aruco_y_0)<0:
-                    vi = 0.05
+                    vi = 0.07
+                else:
+                    vi = 0
                 vel_0.twist.linear.x = (
                     ((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/300)
                 vel_0.twist.linear.y = -((((img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/400) - (
                     img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z) - previous_y_error)/40)-vi
                 print('d0 Box detected, the x and y velocities are:',
                       vel_0.twist.linear.x, vel_0.twist.linear.y)
-                vel_0.twist.linear.z = 0
+                vel_0.twist.linear.z = (1.5-stateMt.local_pos_0.z)/20
                 print('d0 publishing PD velocity')
                 local_vel_pub_0.publish(vel_0)
                 print(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2),img_proc.exo_rad_1,img_proc.position_aruco_y_0)
 
             #if ((img_proc.position_aruco_x_0-10) < (200) < (img_proc.position_aruco_x_0+10)) and (img_proc.position_aruco_y_0 -25  < (225) < (img_proc.position_aruco_y_0)):
-            if(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2)<= (img_proc.exo_rad_0)**2) and (225 <img_proc.position_aruco_y_0):
+            if(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2)<= (img_proc.exo_rad_0)**2):
                 flag1 = True
                 box_id = list(img_proc.Detected_ArUco_markers_0.keys())[0]
 
@@ -473,19 +477,20 @@ def drone_0():
                 local_pos_pub_0.publish(pos_0)
                 ofb_ctl.setAutoLandMode_0()
                 print('d0 Attempted to land c=', str(land_count))
-                # rospy.sleep(12)
+                rospy.sleep(4)
                 # print("d0 Gripping the box")
                 # ofb_ctl.gripper_activate_0(True)
                 while not stateMt.check_gripper_0 == 'True':
                     ofb_ctl.gripper_activate_0(True)
                     
+            
                 if stateMt.check_gripper_0 == 'True':
+                    ofb_ctl.gripper_activate_0(True)
                     print('d0 The box has been gripped')
                     land_count += 1
                     box_dropped = True
                 else:
                     print('d0 The box cannot yet be gripped')
-
                 img_proc.aruco_thresh_bool = False
                 # dummy_points_0()
                 # arm_0()
@@ -493,7 +498,7 @@ def drone_0():
                 offboard_0()
                 # ofb_ctl.setArm_0()
                 setpoint = (stateMt.local_pos_0.x,
-                            stateMt.local_pos_0.y, 3)
+                            stateMt.local_pos_0.y, 2)
                 setpoints_0.insert(i+1, setpoint)
                 i = i+1
                 print('d0 i increased to ', i, 'after re-arming')
@@ -555,7 +560,7 @@ def drone_0():
                 while not stateMt.local_pos_0.z < 2.3:
                     lol =1
                     #print("d0 dummy_stuff uwu")
-                for o in range(5):
+                while not stateMt.check_gripper_0 == 'False':
                     ofb_ctl.gripper_activate_0(False)
                 box_dropped = True
                 print("d0 Releasing box")
@@ -687,14 +692,16 @@ def drone_1():
                     m += 1
             if m==0:
                 if (225-img_proc.position_aruco_y_1)<0:
-                    vi = 0.05
+                    vi = 0.07
+                else:
+                    vi = 0
                 vel_1.twist.linear.x = (
                     ((img_proc.position_aruco_x_1 - 200)*stateMt.local_pos_1.z)/300)
                 vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/400) - (
                     img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z) - previous_y_error)/40)-vi
                 print('d1 Box detected, the x and y velocities are:',
                     vel_1.twist.linear.x, vel_1.twist.linear.y)
-                vel_1.twist.linear.z = 0
+                vel_1.twist.linear.z = (1.5-stateMt.local_pos_1.z)/20
                 print('d1 publishing PD velocity')
                 local_vel_pub_1.publish(vel_1)
                 print(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2),img_proc.exo_rad_1,img_proc.position_aruco_y_0)
@@ -714,19 +721,14 @@ def drone_1():
                 local_pos_pub_1.publish(pos_1)
                 ofb_ctl.setAutoLandMode_1()
                 print('d1 Attempted to land c=', str(land_count))
-                # rospy.sleep(12)
+                rospy.sleep(4)
                 # print("d1 Gripping the box")
-                # ofb_ctl.gripper_activate_1(True)
-                while not stateMt.check_gripper_1 == 'True':
-                    ofb_ctl.gripper_activate_1(True)
-
+                
                 if stateMt.check_gripper_1 == 'True':
+                    ofb_ctl.gripper_activate_1(True)
                     print('d1 The box has been gripped')
                     land_count += 1
                     box_dropped = True
-                else:
-                    print('d1 The box cannot yet be gripped')
-
                 img_proc.aruco_thresh_bool = False
                 #dummy_points_1()
                 #arm_1()
@@ -734,7 +736,7 @@ def drone_1():
                 offboard_1()
                 #ofb_ctl.setArm_1()
                 setpoint = (stateMt.local_pos_1.x,
-                            stateMt.local_pos_1.y, 4)
+                            stateMt.local_pos_1.y,2)
                 setpoints_1.insert(i+1, setpoint)
                 i = i+1
                 print('d1 i increased to ', i, 'after re-arming')
@@ -797,7 +799,7 @@ def drone_1():
                 while not stateMt.local_pos_1.z<2.3:
                     lol = 1 
                     #print("dummy_stuff")              
-                for o in range(5):    
+                while not stateMt.check_gripper_1 == 'False':   
                     ofb_ctl.gripper_activate_1(False)
                 box_dropped = True
                 print("d1 Releasing box")
