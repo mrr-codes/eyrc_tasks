@@ -165,14 +165,12 @@ class stateMoniter:
             else:
                 return(0,4*(row_no-1),3)
         else:
-            if self.boxes_in_row > 4:
-                return (25, 4*(row_no-16), 3)
-            elif self.boxes_in_row > 3:
+            if self.boxes_in_row > 3:
                 return (19, 4*(row_no-16), 3)
-            elif self.boxes_in_row > 2:
-                return (13, 4*(row_no-16), 3)
+            elif self.boxes_in_row >2:
+                return (12, 4*(row_no-16), 3)
             elif self.boxes_in_row > 1:
-                return (13, 4*(row_no-16), 3)
+                return (5, 4*(row_no-16), 3)
             else:
                 return(0,4*(row_no-16),3)
 
@@ -448,7 +446,7 @@ def drone_0():
                     m += 1
             if m == 0 :
                 if (225-img_proc.position_aruco_y_0)<0:
-                    vi = 0.07
+                    vi = 0.1
                 else:
                     vi = 0
                 vel_0.twist.linear.x = (
@@ -692,7 +690,7 @@ def drone_1():
                     m += 1
             if m==0:
                 if (225-img_proc.position_aruco_y_1)<0:
-                    vi = 0.07
+                    vi = 0.2
                 else:
                     vi = 0
                 vel_1.twist.linear.x = (
@@ -707,7 +705,7 @@ def drone_1():
                 print(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2),img_proc.exo_rad_1,img_proc.position_aruco_y_0)
 
             #if ((img_proc.position_aruco_x_0-10) < (200) < (img_proc.position_aruco_x_0+10)) and (img_proc.position_aruco_y_0 -25  < (225) < (img_proc.position_aruco_y_0)):
-            if(((200 - img_proc.position_aruco_x_1)**2 + (225-img_proc.position_aruco_y_1)**2)<= (img_proc.exo_rad_1)**2) and (225 <img_proc.position_aruco_y_1):
+            if(((200 - img_proc.position_aruco_x_1)**2 + (225-img_proc.position_aruco_y_1)**2)<= (img_proc.exo_rad_1)**2):
                 flag1 = True
                 box_id = list(img_proc.Detected_ArUco_markers_1.keys())[0]
 
@@ -796,7 +794,7 @@ def drone_1():
 
             if i > 3 and i == (len(setpoints_1) - 2):
                 ofb_ctl.setAutoLandMode_1()
-                while not stateMt.local_pos_1.z<2.3:
+                while not stateMt.local_pos_1.z< 2.3:
                     lol = 1 
                     #print("dummy_stuff")              
                 while not stateMt.check_gripper_1 == 'False':   
