@@ -686,7 +686,7 @@ def drone_1():
                     rospy.sleep(5)
                     m += 1
             if m==0:
-                if (225-img_proc.position_aruco_y_0)<0:
+                if (225-img_proc.position_aruco_y_1)<0:
                     vi = 0.05
                 vel_1.twist.linear.x = (
                     ((img_proc.position_aruco_x_1 - 200)*stateMt.local_pos_1.z)/300)
