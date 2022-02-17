@@ -153,14 +153,14 @@ class stateMoniter:
         if drone_no == 0:
             if row_no in self.row_list:
                 self.row_list.append(row_no)
-                return (5, 4*(row_no-1), 3)
+                return (6, 4*(row_no-1), 3)
             else:
                 self.row_list.append(row_no)
                 return(0,4*(row_no-1),3)
         else:
             if row_no in self.row_list:
                 self.row_list.append(row_no)
-                return (5, 4*(row_no-16), 3)
+                return (6, 4*(row_no-16), 3)
             else:
                 self.row_list.append(row_no)
                 return(0,4*(row_no-16),3)
@@ -182,27 +182,27 @@ class stateMoniter:
             if drone_no == 0:
                 drop_pt = tuple(
                     map(lambda i, j: i-j, self.blue_truck_seq[self.bt_i], (-1, 1, 0)))
-                final_array = [(drop_pt[0], drop_pt[1],6),
-                                (drop_pt[0], drop_pt[1],6)]
+                final_array = [(drop_pt[0], drop_pt[1],5),
+                                (drop_pt[0], drop_pt[1],5)]
 
             else:
                 drop_pt = tuple(
                     map(lambda i, j: i-j, self.blue_truck_seq[self.bt_i], (-1, 61, 0)))
-                final_array = [(drop_pt[0], drop_pt[1], 7),
-                                (drop_pt[0], drop_pt[1], 7)]
+                final_array = [(drop_pt[0], drop_pt[1], 6),
+                                (drop_pt[0], drop_pt[1], 6)]
 
         else:
             self.rt_i += 1
             if drone_no == 0:
                 drop_pt = tuple(
                     map(lambda i, j: i-j, self.red_truck_seq[self.rt_i], (-1, 1, 0)))
-                final_array = [(drop_pt[0], drop_pt[1], 6), (drop_pt[0], drop_pt[1], 6)]
+                final_array = [(drop_pt[0], drop_pt[1], 5), (drop_pt[0], drop_pt[1], 5)]
 
             else:
                 drop_pt = tuple(
                     map(lambda i, j: i-j, self.red_truck_seq[self.rt_i], (-1, 61, 0)))
-                final_array = [(drop_pt[0], drop_pt[1], 7),
-                               (drop_pt[0], drop_pt[1], 7)]
+                final_array = [(drop_pt[0], drop_pt[1], 6),
+                               (drop_pt[0], drop_pt[1], 6)]
 
         return final_array
 
@@ -398,9 +398,9 @@ def drone_0():
             setpoints_0.clear()
             i = 0
             k += 1
-            vi = 0.04
+        
             previous_y_error = 0
-            setpoints_0.extend([(stateMt.local_pos_0.x,stateMt.local_pos_0.y,6),stateMt.row_spawn_sp0[k],(0,0,4)])
+            setpoints_0.extend([(stateMt.local_pos_0.x,stateMt.local_pos_0.y,5),stateMt.row_spawn_sp0[k],(0,0,4)])
             print('d0 Setpoints list as of now', setpoints_0)
 
         if  i==2 and flag_flip_pos_vol == True :
@@ -417,8 +417,6 @@ def drone_0():
             if (m < 0):
                 flag_flip_pos_vol = False
                 if 150 < img_proc.position_aruco_x_0 < 250:
-                    if stateMt.local_pos_0.x> 3:
-                        vi = 0.07
                     print('d0 publishing set pt to decrease height to 1m')
                     pos_0.pose.position.x = stateMt.local_pos_0.x
                     pos_0.pose.position.y = stateMt.row_spawn_sp0[k][1]
@@ -427,6 +425,8 @@ def drone_0():
                     rospy.sleep(5)
                     m += 1
             if m == 0 :
+                if (225-img_proc.position_aruco_y_0)<0:
+                    vi = 0.05
                 vel_0.twist.linear.x = (
                     ((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/300)
                 vel_0.twist.linear.y = -((((img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/400) - (
@@ -447,7 +447,7 @@ def drone_0():
                     stateMt.local_pos_0.x, stateMt.local_pos_0.y]
                 print('d0 Box is at ', img_proc.box_setpoint)
 
-                pos_0.pose.position.x = img_proc.box_setpoint[0]
+                pos_0.pose.position.x = img_proc.box_setpoint[0]+0.1
                 pos_0.pose.position.y = img_proc.box_setpoint[1]+0.2
                 pos_0.pose.position.z = 1
                 local_pos_pub_0.publish(pos_0)
@@ -457,7 +457,10 @@ def drone_0():
                 # print("d0 Gripping the box")
                 # ofb_ctl.gripper_activate_0(True)
                 while not stateMt.check_gripper_0 == 'True':
+                    
+
                     ofb_ctl.gripper_activate_0(True)
+                        
                     
                 if stateMt.check_gripper_0 == 'True':
                     print('d0 The box has been gripped')
@@ -527,7 +530,7 @@ def drone_0():
 
             if i > 3 and i == (len(setpoints_0) - 2):
                 ofb_ctl.setAutoLandMode_0() 
-                while not stateMt.local_pos_0.z < 2.0:
+                while not stateMt.local_pos_0.z < 2.3:
                     lol=0
                 for o in range(10):
                     ofb_ctl.gripper_activate_0(False)
@@ -614,7 +617,7 @@ def drone_1():
     flag1 = False
     previous_x_error = 0
     previous_y_error = 0
-    vi = 0.07
+    vi = 0
     box_dropped = True
     flag_flip_pos_vol = False
     k = 0
@@ -634,7 +637,7 @@ def drone_1():
             i = 0
             k += 1
             previous_y_error = 0
-            setpoints_1.extend([(stateMt.local_pos_1.x,stateMt.local_pos_1.y,7),stateMt.row_spawn_sp1[k],(0,0,4)])
+            setpoints_1.extend([(stateMt.local_pos_1.x,stateMt.local_pos_1.y,6),stateMt.row_spawn_sp1[k],(0,0,4)])
             print('d1 Setpoints list as of now', setpoints_1)
 
         if  i==2 and flag_flip_pos_vol == True :
@@ -651,8 +654,7 @@ def drone_1():
             if (m < 0):
                 flag_flip_pos_vol = False
                 if 150 < img_proc.position_aruco_x_1 < 250:
-                    if stateMt.local_pos_1.x > 3:
-                        vi = 0.08
+                   
                     print('d1 publishing set pt to decrease height to 1m')
                     pos_1.pose.position.x = stateMt.local_pos_1.x
                     pos_1.pose.position.y = stateMt.row_spawn_sp1[k][1]
@@ -661,6 +663,8 @@ def drone_1():
                     rospy.sleep(5)
                     m += 1
             if m==0:
+                if (225-img_proc.position_aruco_y_1)<0:
+                    vi = 0.05
                 vel_1.twist.linear.x = (
                     ((img_proc.position_aruco_x_1 - 200)*stateMt.local_pos_1.z)/300)
                 vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/400) - (
@@ -691,7 +695,9 @@ def drone_1():
                 # print("d1 Gripping the box")
                 # ofb_ctl.gripper_activate_1(True)
                 while not stateMt.check_gripper_1 == 'True':
+                    
                     ofb_ctl.gripper_activate_1(True)
+                    
                     
                 if stateMt.check_gripper_1 == 'True':
                     print('d1 The box has been gripped')
@@ -764,7 +770,7 @@ def drone_1():
 
             if i > 3 and i == (len(setpoints_1) - 2):
                 ofb_ctl.setAutoLandMode_1()
-                while not stateMt.local_pos_1.z<2.0:
+                while not stateMt.local_pos_1.z<2.3:
                     lol=0              
                 for o in range(10):    
                     ofb_ctl.gripper_activate_1(False)
