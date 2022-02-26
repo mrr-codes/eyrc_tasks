@@ -163,7 +163,7 @@ class stateMoniter:
             elif self.boxes_in_row > 1:
                 return (5, 4*(row_no-1), 3)
             else:
-                return(0,4*(row_no-1),3)
+                return(-1,4*(row_no-1),3)
         else:
             if self.boxes_in_row > 3:
                 return (19, 4*(row_no-16), 3)
@@ -172,7 +172,7 @@ class stateMoniter:
             elif self.boxes_in_row > 1:
                 return (5, 4*(row_no-16), 3)
             else:
-                return(0,4*(row_no-16),3)
+                return(-1,4*(row_no-16),3)
 
     def spawn_clbk(self, msg):
 
@@ -461,7 +461,7 @@ def drone_0():
                 print(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2),img_proc.exo_rad_1,img_proc.position_aruco_y_0)
 
             #if ((img_proc.position_aruco_x_0-10) < (200) < (img_proc.position_aruco_x_0+10)) and (img_proc.position_aruco_y_0 -25  < (225) < (img_proc.position_aruco_y_0)):
-            if(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2)<= (img_proc.exo_rad_0)**2):
+            if(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2)<= (img_proc.exo_rad_0)**2) and (225 <img_proc.position_aruco_y_0):
                 flag1 = True
                 box_id = list(img_proc.Detected_ArUco_markers_0.keys())[0]
 
@@ -705,7 +705,7 @@ def drone_1():
                 print(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2),img_proc.exo_rad_1,img_proc.position_aruco_y_0)
 
             #if ((img_proc.position_aruco_x_0-10) < (200) < (img_proc.position_aruco_x_0+10)) and (img_proc.position_aruco_y_0 -25  < (225) < (img_proc.position_aruco_y_0)):
-            if(((200 - img_proc.position_aruco_x_1)**2 + (225-img_proc.position_aruco_y_1)**2)<= (img_proc.exo_rad_1)**2):
+            if(((200 - img_proc.position_aruco_x_1)**2 + (225-img_proc.position_aruco_y_1)**2)<= (img_proc.exo_rad_1)**2) and (225 <img_proc.position_aruco_y_1):
                 flag1 = True
                 box_id = list(img_proc.Detected_ArUco_markers_1.keys())[0]
 
