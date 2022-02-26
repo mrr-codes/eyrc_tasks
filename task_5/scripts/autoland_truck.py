@@ -548,7 +548,7 @@ def drone_0():
                     
                     print('d0 after reaching goal setpoints are', setpoints_0)
                     x = x+1
-                    rospy.sleep(5)
+                    #rospy.sleep(5)
                 i = i+1
                 #not_first = True
                 print('d0 i increased to ', i, 'after reaching goal')
