@@ -502,7 +502,7 @@ def drone_0():
             pos_0.pose.position.y = setpoints_0[i][1]
             pos_0.pose.position.z = setpoints_0[i][2]
 
-            if reached == True and (setpoints_0[i][1] != 0 and abs(setpoints_0[i][1]) % 4 == 0):
+            if reached == True and  x!= 0 and (abs(setpoints_0[i][1]) % 4 == 0):
                 print('d0 At row start velocity control')
                 vel_0.twist.linear.x = 1.5
                 vel_0.twist.linear.y = 0
