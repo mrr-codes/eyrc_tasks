@@ -110,25 +110,20 @@ class stateMoniter:
         self.row_spawn_sp1 = list()
         self.spawn_count = 0
         self.row_list = list()
-        self.bt_0 = -1  # neeed to write reset condition
-        self.rt_0 = -1
-        self.bt_1 = 0
-        self.rt_1 = 0
-        self.box_counts = dict()
-        
+        self.bt_i = -1  # neeed to write reset condition
+        self.rt_i = -1
 
         self.blue_truck = np.array([[(13.85, -7.4, 1.84), (13.85, -6.17, 1.84), (13.85, -4.95, 1.84)], [(14.7, -7.4, 1.84), (14.7, -6.17, 1.84),
                                    (14.7, -4.95, 1.84)], [(15.55, -7.4, 1.84), (15.55, -6.17, 1.84), (15.55, -4.95, 1.84)], [(16.4, -7.4, 1.84), (16.4, -6.17, 1.84), (16.4, -4.95, 1.84)]])
 
         self.red_truck = np.array([[(56.5, 64.75, 1.84), (56.5, 65.98, 1.84), (56.5, 67.21, 1.84)], [(57.35, 64.75, 1.84), (57.35, 65.98, 1.84), (57.35, 67.21, 1.84)],
-                                  [(58.2, 64.75, 1.84), (58.2, 65.98, 1.84), (58.2, 67.21, 1.84)], [(59.05, 64.75, 1.84), (59.05, 65.98, 1.84), (59.05, 67.35, 1.84)]])
+                                  [(58.2, 64.75, 1.84), (58.2, 65.98, 1.84), (58.2, 67.21, 1.84)], [(59.05, 64.75, 1.84), (59.05, 65.98, 1.84), (59.05, 67.21, 1.84)]])
 
-        self.blue_truck_seq = [self.blue_truck[3, 2], self.blue_truck[3, 1], self.blue_truck[3, 0], self.blue_truck[2, 0], self.blue_truck[2, 1], self.blue_truck[
-            2, 2], self.blue_truck[1, 2], self.blue_truck[1, 1], self.blue_truck[1, 0]]
+        self.blue_truck_seq = [self.blue_truck[1, 0],self.blue_truck[2, 1],self.blue_truck[1,2],
+        self.blue_truck[3,0],self.blue_truck[1,1],self.blue_truck[3,1],self.blue_truck[2,2],self.blue_truck[2,0],self.blue_truck[2,1]]
 
-        self.red_truck_seq = [self.red_truck[3, 2], self.red_truck[3, 1], self.red_truck[3, 0], self.red_truck[2, 0], self.red_truck[2, 1], self.red_truck[
-            2, 2], self.red_truck[1, 2], self.red_truck[1, 1], self.red_truck[1, 0]]
-
+        self.red_truck_seq = [self.red_truck[1, 0],self.red_truck[2, 1],self.red_truck[1,2],
+        self.red_truck[3,0],self.red_truck[1,1],self.red_truck[3,1],self.red_truck[2,2],self.red_truck[2,0],self.red_truck[2,1]]
 
 
     def stateCb_0(self, msg):
@@ -154,30 +149,23 @@ class stateMoniter:
         self.check_gripper_1 = msg.data
 
     def calculate_row_start(self, row_no, drone_no):
-        self.boxes_in_row = self.box_counts[row_no]
+
         if drone_no == 0:
-            if self.boxes_in_row > 3:
-                return (19, 4*(row_no-1), 3)
-            elif self.boxes_in_row > 2:
-                return (12, 4*(row_no-1), 3)
-            elif self.boxes_in_row > 1:
+            if row_no in self.row_list:
+                self.row_list.append(row_no)
                 return (5, 4*(row_no-1), 3)
             else:
+                self.row_list.append(row_no)
                 return(0,4*(row_no-1),3)
         else:
-            if self.boxes_in_row > 3:
-                return (19, 4*(row_no-16), 3)
-            elif self.boxes_in_row >2:
-                return (12, 4*(row_no-16), 3)
-            elif self.boxes_in_row > 1:
+            if row_no in self.row_list:
+                self.row_list.append(row_no)
                 return (5, 4*(row_no-16), 3)
             else:
+                self.row_list.append(row_no)
                 return(0,4*(row_no-16),3)
-
     def spawn_clbk(self, msg):
-
-        self.box_counts[msg.data] = self.box_counts.get(msg.data, 0) + 1
-
+        
         if self.spawn_count % 2 == 0:
             self.row_spawn_sp0.append(self.calculate_row_start(msg.data, 0))
             print('d0 Row_spawn list',self.row_spawn_sp0)
@@ -190,35 +178,31 @@ class stateMoniter:
 
     def calculate_truck_point(self, id, drone_no):
         if id == 2:  # blue
-            
+            self.bt_i += 1
             if drone_no == 0:
-                self.bt_0 += 1
                 drop_pt = tuple(
-                    map(lambda i, j: i-j, self.blue_truck_seq[self.bt_0], (-1, 1, 0)))
-                final_array = [(drop_pt[0], drop_pt[1],5),
-                                (drop_pt[0], drop_pt[1],5)]
+                    map(lambda i, j: i-j, self.blue_truck_seq[self.bt_i], (-1, 1, 0)))
+                final_array = [(drop_pt[0], drop_pt[1],6),
+                                (drop_pt[0], drop_pt[1],6)]
 
             else:
-                self.bt_1 -= 1
                 drop_pt = tuple(
-                    map(lambda i, j: i-j, self.blue_truck_seq[self.bt_1], (-1, 61, 0)))
-                final_array = [(drop_pt[0], drop_pt[1], 6),
-                                (drop_pt[0], drop_pt[1], 6)]
+                    map(lambda i, j: i-j, self.blue_truck_seq[self.bt_i], (-1, 61, 0)))
+                final_array = [(drop_pt[0], drop_pt[1], 7),
+                                (drop_pt[0], drop_pt[1], 7)]
 
         else:
-            
+            self.rt_i += 1
             if drone_no == 0:
-                self.rt_0 += 1
                 drop_pt = tuple(
-                    map(lambda i, j: i-j, self.red_truck_seq[self.rt_0], (-1, 1, 0)))
-                final_array = [(drop_pt[0], drop_pt[1], 5), (drop_pt[0], drop_pt[1], 5)]
+                    map(lambda i, j: i-j, self.red_truck_seq[self.rt_i], (-1, 1, 0)))
+                final_array = [(drop_pt[0], drop_pt[1], 6), (drop_pt[0], drop_pt[1], 6)]
 
             else:
-                self.rt_1 -= 1
                 drop_pt = tuple(
-                    map(lambda i, j: i-j, self.red_truck_seq[self.rt_1], (-1, 61, 0)))
-                final_array = [(drop_pt[0], drop_pt[1], 6),
-                               (drop_pt[0], drop_pt[1], 6)]
+                    map(lambda i, j: i-j, self.red_truck_seq[self.rt_i], (-1, 61, 0)))
+                final_array = [(drop_pt[0], drop_pt[1], 7),
+                               (drop_pt[0], drop_pt[1], 7)]
 
         return final_array
 
@@ -399,10 +383,9 @@ def drone_0():
     vi = 0
     box_dropped = True
     flag_flip_pos_vol = False
-    k = -1
+    k = 0
     m = -1
     x = 0
-    not_first=False
     ofb_ctl.setArm_0()
     while not rospy.is_shutdown():
 
@@ -414,11 +397,10 @@ def drone_0():
             print('d0 clearing spts.')
             setpoints_0.clear()
             i = 0
-            #k = k - 1                            #hello
-                                        #it's me
+            k += 1
+            vi = 0.04
             previous_y_error = 0
-            setpoints_0.extend([(stateMt.local_pos_0.x,stateMt.local_pos_0.y,5),stateMt.row_spawn_sp0[k],(0,0,4)])
-            pop_ele = stateMt.row_spawn_sp0.pop()
+            setpoints_0.extend([(stateMt.local_pos_0.x,stateMt.local_pos_0.y,6),stateMt.row_spawn_sp0[k],(0,0,4)])
             print('d0 Setpoints list as of now', setpoints_0)
 
         if  i==2 and flag_flip_pos_vol == True :
@@ -432,14 +414,14 @@ def drone_0():
             flag_flip_pos_vol = False
             img_proc.aruco_thresh_bool = True
             
-
             if (m < 0):
                 flag_flip_pos_vol = False
                 if 150 < img_proc.position_aruco_x_0 < 250:
-                    
+                    if stateMt.local_pos_0.x> 3:
+                        vi = 0.07
                     print('d0 publishing set pt to decrease height to 1m')
                     pos_0.pose.position.x = stateMt.local_pos_0.x
-                    pos_0.pose.position.y = pop_ele[1]
+                    pos_0.pose.position.y = stateMt.row_spawn_sp0[k][1]
                     pos_0.pose.position.z = 1.5
                     local_pos_pub_0.publish(pos_0)
                     rospy.sleep(5)
@@ -469,26 +451,26 @@ def drone_0():
                     stateMt.local_pos_0.x, stateMt.local_pos_0.y]
                 print('d0 Box is at ', img_proc.box_setpoint)
 
-                pos_0.pose.position.x = img_proc.box_setpoint[0]
-                pos_0.pose.position.y = img_proc.box_setpoint[1]
+                pos_0.pose.position.x = img_proc.box_setpoint[0]+0.2
+                pos_0.pose.position.y = img_proc.box_setpoint[1]+0.2
                 pos_0.pose.position.z = 1
                 local_pos_pub_0.publish(pos_0)
                 ofb_ctl.setAutoLandMode_0()
                 print('d0 Attempted to land c=', str(land_count))
-                rospy.sleep(4)
+                # rospy.sleep(12)
                 # print("d0 Gripping the box")
                 # ofb_ctl.gripper_activate_0(True)
                 while not stateMt.check_gripper_0 == 'True':
-                    ofb_ctl.gripper_activate_0(True)
+                    if stateMt.local_pos_0.z < 0.2:
+                        ofb_ctl.gripper_activate_0(True)
                     
-            
                 if stateMt.check_gripper_0 == 'True':
-                    ofb_ctl.gripper_activate_0(True)
                     print('d0 The box has been gripped')
                     land_count += 1
                     box_dropped = True
                 else:
                     print('d0 The box cannot yet be gripped')
+
                 img_proc.aruco_thresh_bool = False
                 # dummy_points_0()
                 # arm_0()
@@ -496,7 +478,7 @@ def drone_0():
                 offboard_0()
                 # ofb_ctl.setArm_0()
                 setpoint = (stateMt.local_pos_0.x,
-                            stateMt.local_pos_0.y, 2)
+                            stateMt.local_pos_0.y, 3)
                 setpoints_0.insert(i+1, setpoint)
                 i = i+1
                 print('d0 i increased to ', i, 'after re-arming')
@@ -508,7 +490,6 @@ def drone_0():
                 setpoints_0.extend(
                     [truck_pts[0], truck_pts[1], (0, 0, 0)])
                 print('d0 Setpoints list as of now', setpoints_0)
-                stateMt.boxes_in_row -= 1
 
             #previous_x_error = img_proc.position_aruco_x_0 - 200
             previous_y_error = img_proc.position_aruco_y_0 - \
@@ -521,8 +502,7 @@ def drone_0():
             pos_0.pose.position.y = setpoints_0[i][1]
             pos_0.pose.position.z = setpoints_0[i][2]
 
-            if reached == True and x!=0 and (abs(setpoints_0[i][1]) % 4 == 0) :
-               # print('not_first val is',not_first)
+            if reached == True and  x!= 0 and (abs(setpoints_0[i][1]) % 4 == 0):
                 print('d0 At row start velocity control')
                 vel_0.twist.linear.x = 1.5
                 vel_0.twist.linear.y = 0
@@ -542,24 +522,21 @@ def drone_0():
 
             if reached == True and flag1 == False:
                 print("d0 Reached goal")
-                if x == 0:
+                while x == 0:
                     setpoints_0.extend([stateMt.row_spawn_sp0[k],(0,4,4)])
-                    pop_ele =stateMt.row_spawn_sp0.pop()
-                    
                     print('d0 after reaching goal setpoints are', setpoints_0)
                     x = x+1
-                    rospy.sleep(5)
+
                 i = i+1
-                #not_first = True
                 print('d0 i increased to ', i, 'after reaching goal')
 
             if i > 3 and i == (len(setpoints_0) - 2):
                 ofb_ctl.setAutoLandMode_0() 
-                while not stateMt.local_pos_0.z < 2.3:
-                    lol =1
-                    #print("d0 dummy_stuff uwu")
-                while not stateMt.check_gripper_0 == 'False':
+                while not stateMt.local_pos_0.z < 2.0:
+                    lol=0
+                for o in range(3):
                     ofb_ctl.gripper_activate_0(False)
+                    
                 box_dropped = True
                 print("d0 Releasing box")
 
@@ -642,10 +619,10 @@ def drone_1():
     flag1 = False
     previous_x_error = 0
     previous_y_error = 0
-    vi = 0.05
+    vi = 0.07
     box_dropped = True
     flag_flip_pos_vol = False
-    k = -1
+    k = 0
     m = -1
     x = 0
     ofb_ctl.setArm_1()
@@ -660,11 +637,9 @@ def drone_1():
             print('d1 clearing spts.')
             setpoints_1.clear()
             i = 0
-            #k += 1
-            k=-1
+            k += 1
             previous_y_error = 0
-            setpoints_1.extend([(stateMt.local_pos_1.x,stateMt.local_pos_1.y,6),stateMt.row_spawn_sp1[k],(0,0,4)])
-            pop_ele = stateMt.row_spawn_sp1.pop()
+            setpoints_1.extend([(stateMt.local_pos_1.x,stateMt.local_pos_1.y,7),stateMt.row_spawn_sp1[k],(0,0,4)])
             print('d1 Setpoints list as of now', setpoints_1)
 
         if  i==2 and flag_flip_pos_vol == True :
@@ -681,9 +656,11 @@ def drone_1():
             if (m < 0):
                 flag_flip_pos_vol = False
                 if 150 < img_proc.position_aruco_x_1 < 250:
+                    if stateMt.local_pos_1.x > 3:
+                        vi = 0.08
                     print('d1 publishing set pt to decrease height to 1m')
                     pos_1.pose.position.x = stateMt.local_pos_1.x
-                    pos_1.pose.position.y = pop_ele[1]
+                    pos_1.pose.position.y = stateMt.row_spawn_sp1[k][1]
                     pos_1.pose.position.z = 1.5
                     local_pos_pub_1.publish(pos_1)
                     rospy.sleep(5)
@@ -719,14 +696,20 @@ def drone_1():
                 local_pos_pub_1.publish(pos_1)
                 ofb_ctl.setAutoLandMode_1()
                 print('d1 Attempted to land c=', str(land_count))
-                rospy.sleep(4)
+                # rospy.sleep(12)
                 # print("d1 Gripping the box")
-                
+                # ofb_ctl.gripper_activate_1(True)
+                while not stateMt.check_gripper_1 == 'True':
+                     if stateMt.local_pos_1.z < 0.2:
+                        ofb_ctl.gripper_activate_1(True)
+                    
                 if stateMt.check_gripper_1 == 'True':
-                    ofb_ctl.gripper_activate_1(True)
                     print('d1 The box has been gripped')
                     land_count += 1
                     box_dropped = True
+                else:
+                    print('d1 The box cannot yet be gripped')
+
                 img_proc.aruco_thresh_bool = False
                 #dummy_points_1()
                 #arm_1()
@@ -734,7 +717,7 @@ def drone_1():
                 offboard_1()
                 #ofb_ctl.setArm_1()
                 setpoint = (stateMt.local_pos_1.x,
-                            stateMt.local_pos_1.y,2)
+                            stateMt.local_pos_1.y, 4)
                 setpoints_1.insert(i+1, setpoint)
                 i = i+1
                 print('d1 i increased to ', i, 'after re-arming')
@@ -746,7 +729,7 @@ def drone_1():
                 setpoints_1.extend(
                     [truck_pts[0], truck_pts[1],(0, 0, 0)])
                 print('d1 Setpoints list as of now', setpoints_1)
-                stateMt.boxes_in_row -= 1
+
             #previous_x_error = img_proc.position_aruco_x_1 - 200
             previous_y_error = img_proc.position_aruco_y_1 - \
                 (200 + 80/stateMt.local_pos_1.z)
@@ -783,22 +766,19 @@ def drone_1():
                     print(stateMt.row_spawn_sp1)
                     print(stateMt.row_spawn_sp1[k])
                     setpoints_1.extend([stateMt.row_spawn_sp1[k],(0,4,4)])
-                    pop_ele = stateMt.row_spawn_sp1.pop()
-                    
-                    
                     print('after reaching goal setpoints are', setpoints_1)
                     x = x+1
-                    #rospy.sleep(5)
+
                 i = i+1
                 print('d1 i increased to ', i, 'after reaching goal')
 
             if i > 3 and i == (len(setpoints_1) - 2):
                 ofb_ctl.setAutoLandMode_1()
-                while not stateMt.local_pos_1.z< 2.3:
-                    lol = 1 
-                    #print("dummy_stuff")              
-                while not stateMt.check_gripper_1 == 'False':   
+                while not stateMt.local_pos_1.z<2.0:
+                    lol=0              
+                for o in range(3):    
                     ofb_ctl.gripper_activate_1(False)
+                    
                 box_dropped = True
                 print("d1 Releasing box")
 
