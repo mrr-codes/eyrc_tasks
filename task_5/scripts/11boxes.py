@@ -555,7 +555,7 @@ def drone_0():
 
             if i > 3 and i == (len(setpoints_0) - 2):
                 ofb_ctl.setAutoLandMode_0() 
-                while not stateMt.local_pos_0.z < 2.0:
+                while not stateMt.local_pos_0.z < 2.3:
                     lol=0
                 for o in range(3):
                     ofb_ctl.gripper_activate_0(False)
@@ -797,7 +797,7 @@ def drone_1():
 
             if i > 3 and i == (len(setpoints_1) - 2):
                 ofb_ctl.setAutoLandMode_1()
-                while not stateMt.local_pos_1.z<2.0:
+                while not stateMt.local_pos_1.z<2.3:
                     lol=0              
                 for o in range(3):    
                     ofb_ctl.gripper_activate_1(False)
