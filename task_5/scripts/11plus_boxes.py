@@ -502,7 +502,7 @@ def drone_0():
                 # print("d0 Gripping the box")
                 # ofb_ctl.gripper_activate_0(True)
                 while not stateMt.check_gripper_0 == 'True':
-                    if stateMt.local_pos_0.z < 0.2:
+                    if stateMt.local_pos_0.z < 0.25:
                         ofb_ctl.gripper_activate_0(True)
                 stateMt.boxes_in_row -= 1  
                 if stateMt.check_gripper_0 == 'True':
@@ -557,8 +557,8 @@ def drone_0():
                 box_dropped = False
 
             else:
-                print('d0 Setpoint published is', pos_0.pose.position.x,
-                      pos_0.pose.position.y, pos_0.pose.position.z)
+                # print('d0 Setpoint published is', pos_0.pose.position.x,
+                #       pos_0.pose.position.y, pos_0.pose.position.z)
                 local_pos_pub_0.publish(pos_0)
 
             if reached == True and flag1 == False:
@@ -741,7 +741,7 @@ def drone_1():
                 # print("d1 Gripping the box")
                 # ofb_ctl.gripper_activate_1(True)
                 while not stateMt.check_gripper_1 == 'True':
-                     if stateMt.local_pos_1.z < 0.2:
+                     if stateMt.local_pos_1.z < 0.25:
                         ofb_ctl.gripper_activate_1(True)
                 stateMt.boxes_in_row -= 1    
                 if stateMt.check_gripper_1 == 'True':
@@ -796,8 +796,8 @@ def drone_1():
                 box_dropped = False
 
             else:
-                print('d1 Setpoint published is', pos_1.pose.position.x,
-                      pos_1.pose.position.y, pos_1.pose.position.z)
+                # print('d1 Setpoint published is', pos_1.pose.position.x,
+                #       pos_1.pose.position.y, pos_1.pose.position.z)
                 local_pos_pub_1.publish(pos_1)
 
             if reached == True and flag1 == False:
