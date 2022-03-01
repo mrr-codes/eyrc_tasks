@@ -110,8 +110,12 @@ class stateMoniter:
         self.row_spawn_sp1 = list()
         self.spawn_count = 0
         self.row_list = list()
-        self.bt_i = -1  # neeed to write reset condition
-        self.rt_i = -1
+        # self.bt_i = -1  # neeed to write reset condition
+        # self.rt_i = -1
+        self.bt_0 = -1  # neeed to write reset condition
+        self.rt_0 = -1
+        self.bt_1 = 0
+        self.rt_1 = 0
         self.box_counts = dict()
 
         self.blue_truck = np.array([[(13.85, -7.4, 1.84), (13.85, -6.17, 1.84), (13.85, -4.95, 1.84)], [(14.7, -7.4, 1.84), (14.7, -6.17, 1.84),
@@ -120,11 +124,18 @@ class stateMoniter:
         self.red_truck = np.array([[(56.5, 64.75, 1.84), (56.5, 65.98, 1.84), (56.5, 67.21, 1.84)], [(57.35, 64.75, 1.84), (57.35, 65.98, 1.84), (57.35, 67.21, 1.84)],
                                   [(58.2, 64.75, 1.84), (58.2, 65.98, 1.84), (58.2, 67.21, 1.84)], [(59.05, 64.75, 1.84), (59.05, 65.98, 1.84), (59.05, 67.21, 1.84)]])
 
-        self.blue_truck_seq = [self.blue_truck[1, 0],self.blue_truck[2, 1],self.blue_truck[1,2],
-        self.blue_truck[3,0],self.blue_truck[1,1],self.blue_truck[3,1],self.blue_truck[2,2],self.blue_truck[2,0],self.blue_truck[2,1]]
+        # self.blue_truck_seq = [self.blue_truck[1, 0],self.blue_truck[2, 1],self.blue_truck[1,2],
+        # self.blue_truck[3,0],self.blue_truck[1,1],self.blue_truck[3,1],self.blue_truck[2,2],self.blue_truck[2,0],self.blue_truck[2,1]]
 
-        self.red_truck_seq = [self.red_truck[1, 0],self.red_truck[2, 1],self.red_truck[1,2],
-        self.red_truck[3,0],self.red_truck[1,1],self.red_truck[3,1],self.red_truck[2,2],self.red_truck[2,0],self.red_truck[2,1]]
+        # self.red_truck_seq = [self.red_truck[1, 0],self.red_truck[2, 1],self.red_truck[1,2],
+        # self.red_truck[3,0],self.red_truck[1,1],self.red_truck[3,1],self.red_truck[2,2],self.red_truck[2,0],self.red_truck[2,1]]
+
+        self.blue_truck_seq = [self.blue_truck[3, 2], self.blue_truck[3, 1], self.blue_truck[3, 0], self.blue_truck[2, 0], self.blue_truck[2, 1], self.blue_truck[
+            2, 2], self.blue_truck[1, 2], self.blue_truck[1, 1], self.blue_truck[1, 0]]
+
+        self.red_truck_seq = [self.red_truck[3, 2], self.red_truck[3, 1], self.red_truck[3, 0], self.red_truck[2, 0], self.red_truck[2, 1], self.red_truck[
+            2, 2], self.red_truck[1, 2], self.red_truck[1, 1], self.red_truck[1, 0]]
+
 
 
     def stateCb_0(self, msg):
@@ -201,31 +212,34 @@ class stateMoniter:
 
     def calculate_truck_point(self, id, drone_no):
         if id == 2:  # blue
-            self.bt_i += 1
+            #self.bt_i += 1
             if drone_no == 0:
+                self.bt_0 += 1
                 drop_pt = tuple(
-                    map(lambda i, j: i-j, self.blue_truck_seq[self.bt_i], (-1, 1, 0)))
-                final_array = [(drop_pt[0], drop_pt[1],6),
-                                (drop_pt[0], drop_pt[1],6)]
+                    map(lambda i, j: i-j, self.blue_truck_seq[self.bt_0], (-1, 1, 0)))
+                final_array = [(drop_pt[0], drop_pt[1],5),
+                                (drop_pt[0], drop_pt[1],5)]
 
             else:
+                self.bt_1 -= 1
                 drop_pt = tuple(
-                    map(lambda i, j: i-j, self.blue_truck_seq[self.bt_i], (-1, 61, 0)))
-                final_array = [(drop_pt[0], drop_pt[1], 7),
-                                (drop_pt[0], drop_pt[1], 7)]
+                    map(lambda i, j: i-j, self.blue_truck_seq[self.bt_1], (-1, 61, 0)))
+                final_array = [(drop_pt[0], drop_pt[1], 6),
+                                (drop_pt[0], drop_pt[1], 6)]
 
         else:
-            self.rt_i += 1
             if drone_no == 0:
+                self.rt_0 += 1
                 drop_pt = tuple(
-                    map(lambda i, j: i-j, self.red_truck_seq[self.rt_i], (-1, 1, 0)))
-                final_array = [(drop_pt[0], drop_pt[1], 6), (drop_pt[0], drop_pt[1], 6)]
+                    map(lambda i, j: i-j, self.red_truck_seq[self.rt_0], (-1, 1, 0)))
+                final_array = [(drop_pt[0], drop_pt[1], 5), (drop_pt[0], drop_pt[1], 5)]
 
             else:
+                self.rt_1 -= 1
                 drop_pt = tuple(
-                    map(lambda i, j: i-j, self.red_truck_seq[self.rt_i], (-1, 61, 0)))
-                final_array = [(drop_pt[0], drop_pt[1], 7),
-                               (drop_pt[0], drop_pt[1], 7)]
+                    map(lambda i, j: i-j, self.red_truck_seq[self.rt_1], (-1, 61, 0)))
+                final_array = [(drop_pt[0], drop_pt[1], 6),
+                               (drop_pt[0], drop_pt[1], 6)]
 
         return final_array
 
@@ -393,7 +407,7 @@ def drone_0():
         pos = np.array((stateMt.local_pos_0.x,
                         stateMt.local_pos_0.y,
                         stateMt.local_pos_0.z))
-        print('d0', np.linalg.norm(desired - pos))
+        #print('d0', np.linalg.norm(desired - pos))
         if (i > 3 and i == (len(setpoints_0) - 3)) or (i==1):
             return np.linalg.norm(desired - pos) < 0.2
         else:
@@ -458,12 +472,12 @@ def drone_0():
                     ((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/300)
                 vel_0.twist.linear.y = -((((img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/400) - (
                     img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z) - previous_y_error)/40)-vi
-                print('d0 Box detected, the x and y velocities are:',
-                      vel_0.twist.linear.x, vel_0.twist.linear.y)
+                # print('d0 Box detected, the x and y velocities are:',
+                #       vel_0.twist.linear.x, vel_0.twist.linear.y)
                 vel_0.twist.linear.z = (1.5-stateMt.local_pos_0.z)/20
-                print('d0 publishing PD velocity')
+                #print('d0 publishing PD velocity')
                 local_vel_pub_0.publish(vel_0)
-                print(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2),img_proc.exo_rad_1,img_proc.position_aruco_y_0)
+                #print(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2),img_proc.exo_rad_1,img_proc.position_aruco_y_0)
 
             #if ((img_proc.position_aruco_x_0-10) < (200) < (img_proc.position_aruco_x_0+10)) and (img_proc.position_aruco_y_0 -25  < (225) < (img_proc.position_aruco_y_0)):
             if(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2)<= (img_proc.exo_rad_0)**2) and (225 <img_proc.position_aruco_y_0):
@@ -526,7 +540,7 @@ def drone_0():
             pos_0.pose.position.z = setpoints_0[i][2]
 
             if reached == True and  x!= 0 and (abs(setpoints_0[i][1]) % 4 == 0):
-                print('d0 At row start velocity control')
+                #print('d0 At row start velocity control')
                 vel_0.twist.linear.x = 1.5
                 vel_0.twist.linear.y = 0
                 vel_0.twist.linear.z = 0
@@ -631,7 +645,7 @@ def drone_1():
         pos = np.array((stateMt.local_pos_1.x,
                         stateMt.local_pos_1.y,
                         stateMt.local_pos_1.z))
-        print('d1', np.linalg.norm(desired - pos))
+        #print('d1', np.linalg.norm(desired - pos))
         if (i > 3 and i == (len(setpoints_1) - 3)) or (i==1):
             return np.linalg.norm(desired - pos) < 0.2
         else:
@@ -697,12 +711,12 @@ def drone_1():
                     ((img_proc.position_aruco_x_1 - 200)*stateMt.local_pos_1.z)/300)
                 vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/400) - (
                     img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z) - previous_y_error)/40)-vi
-                print('d1 Box detected, the x and y velocities are:',
-                    vel_1.twist.linear.x, vel_1.twist.linear.y)
+                # print('d1 Box detected, the x and y velocities are:',
+                #     vel_1.twist.linear.x, vel_1.twist.linear.y)
                 vel_1.twist.linear.z = (1.5-stateMt.local_pos_1.z)/20
-                print('d1 publishing PD velocity')
+                #print('d1 publishing PD velocity')
                 local_vel_pub_1.publish(vel_1)
-                print(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2),img_proc.exo_rad_1,img_proc.position_aruco_y_0)
+                #print(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2),img_proc.exo_rad_1,img_proc.position_aruco_y_0)
 
             #if ((img_proc.position_aruco_x_0-10) < (200) < (img_proc.position_aruco_x_0+10)) and (img_proc.position_aruco_y_0 -25  < (225) < (img_proc.position_aruco_y_0)):
             if(((200 - img_proc.position_aruco_x_1)**2 + (225-img_proc.position_aruco_y_1)**2)<= (img_proc.exo_rad_1)**2) and (225 <img_proc.position_aruco_y_1):
@@ -765,7 +779,7 @@ def drone_1():
             pos_1.pose.position.z = setpoints_1[i][2]
 
             if reached == True and (setpoints_1[i][1] != 0 and abs(setpoints_1[i][1]) % 4 == 0):
-                print('d1 At row start velocity control')
+                #print('d1 At row start velocity control')
                 vel_1.twist.linear.x = 1.5
                 vel_1.twist.linear.y = 0
                 vel_1.twist.linear.z = 0
