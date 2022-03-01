@@ -178,21 +178,25 @@ class stateMoniter:
         #         return(0,4*(row_no-16),3)
         self.boxes_in_row = self.box_counts[row_no]
         if drone_no == 0:
-            if self.boxes_in_row > 3:
-                return (19, 4*(row_no-1), 3)
+            if self.boxes_in_row> 4:
+                return (38, 4*(row_no-1), 3)
+            elif self.boxes_in_row > 3:
+                return (30, 4*(row_no-1), 3)
             elif self.boxes_in_row > 2:
-                return (12, 4*(row_no-1), 3)
+                return (19, 4*(row_no-1), 3)
             elif self.boxes_in_row > 1:
-                return (5, 4*(row_no-1), 3)
+                return (9, 4*(row_no-1), 3)
             else:
                 return(-1,4*(row_no-1),3)
         else:
-            if self.boxes_in_row > 3:
-                return (19, 4*(row_no-16), 3)
+            if self.boxes_in_row>4:
+                return (38, 4*(row_no-16), 3)
+            elif self.boxes_in_row > 3:
+                return (30, 4*(row_no-16), 3)
             elif self.boxes_in_row >2:
-                return (12, 4*(row_no-16), 3)
+                return (19, 4*(row_no-16), 3)
             elif self.boxes_in_row > 1:
-                return (5, 4*(row_no-16), 3)    
+                return (9, 4*(row_no-16), 3)    
             else:
                 return(-1.4,4*(row_no-16),3)
 
