@@ -1,3 +1,18 @@
+""" Task Implementation: We are splitting spawn_info data & accessing it in two separate lists. One list is assigned to drone0 & other
+to drone1. After a split row number is passed to a function that inputs row no, the drone number returns a 
+setpoint specific to the drone & on the frequency of box spawn. Lists are populated with tuples of row setpoints.
+After drones take off to 3 m height, the row setpoint lists are added to the drone setpoints list.
+After reaching the setpoint, velocity control kicks in, moving the drones straight along the row with a velocity
+of 1.5 m/s. Along the way once a box is in the field of view the drone lowers to a height of 1 m and precise
+positioning takes place by  PID algorithm for velocities that takes into account distance between the camera centre 
+& aruco centre and the drone's current height. When the centre is to the left of the circle(the distance between 
+the aruco centre and bottom corner is the radius of the circle), the autoland is activated and the gripper is 
+activated on the box. During the land process the id of the current box is sent to a function that calculates truck 
+setpoints based on the drone number, aruco id, and we append the points to the setpoint list of the drone. Once the
+drone reaches near the truck gridpoint it goes to a lower height, drops the box, setpoint for drone to raise
+to a height is appended.Next row start setpoints are calculated and the process repeats."""
+
+
 #!/usr/bin/env python3
 import rospy
 from geometry_msgs.msg import *
@@ -32,7 +47,7 @@ class offboard_control:
             armService_0(True)
         except rospy.ServiceException as e:
             print("Service arming call failed: %s" % e)
-
+        # Creating a proxy service for the rosservice named /mavros/cmd/arming for arming the drone
     def setArm_1(self):
         rospy.wait_for_service('/edrone1/mavros/cmd/arming')
         print('setArm_1 called')
@@ -156,7 +171,7 @@ class stateMoniter:
     def gripper_check_clbk_1(self, msg):
         self.check_gripper_1 = msg.data
         
-# Function for calculating row search start setpoints from row no. and drone no.
+# Function for calculating row search start setpoints from row no. and drone no and the number of boxes in a particular row.
     def calculate_row_start(self, row_no, drone_no):
         
         self.boxes_in_row = self.box_counts[row_no]
@@ -290,7 +305,7 @@ class image_processing:
 
                 self.position_aruco_x_0 = self.centre[0] #x-coordinate of centre of aruco in pixels
                 self.position_aruco_y_0 = self.centre[1] #y-coordinate of centre of aruco in pixels
-                self.bcorner_0 = self.bcorner_0 #(x,y) coordinates of bootom corner of aruco in pixels
+                self.bcorner_0 = self.bcorner_0 #(x,y) coordinates of bottom corner of aruco in pixels
                 self.exo_rad_0=math.sqrt((self.bcorner_0[0]-self.position_aruco_x_0)**2+(self.bcorner_0[1]-self.position_aruco_y_0)**2)# calculating radius of exo-circle(euclidean diatance between centre and bottom corner)
                 cv2.circle(self.img,(int(self.position_aruco_x_0),int(self.position_aruco_y_0)),radius=abs(int(self.exo_rad_0)),color= (0,225,0),thickness=2)#drawing an exo circle around the box with exo_rad_1 as the radius 
             
@@ -407,10 +422,10 @@ def drone_0():
             return np.linalg.norm(desired - pos) < 0.5
     
     land_count = 0 # No. of times drone landed
-    flag1 = False #Boolean to start velocity control after drone reaches start of the row
+    flag1 = False #Boolean to start velocity control after drone reaches start of the row,if true row start velocity is published
     previous_y_error = 0 #Variable to keep track of the error in y-direction of the previous timestep
     vi = 0 #Integral gain term
-    box_dropped = True  #Boolean to ensure that boxes are picked up only after drone reaches row_start points and velocity is published
+    box_dropped = True #Boolean to ensure that boxes are picked up only after drone reaches row_start points and velocity is published,if false boxes are picked up
     flag_flip_pos_vol = False #Boolean to track velocity control once the drone reaches row start
     k = 0 #Variable to iterate through the row_spawn list
     m = -1 #Variable to make the drone lower height after box is in required limits, only once
@@ -428,7 +443,6 @@ def drone_0():
             setpoints_0.clear()
             i = 0
             k += 1
-            vi = 0.04
             previous_y_error = 0
             setpoints_0.extend([(stateMt.local_pos_0.x,stateMt.local_pos_0.y,6),stateMt.row_spawn_sp0[k],(0,0,4)])#Raising drone to a height of 6m setpoint,appending Kth element of row_spawn list and (0,0,4) works as a dummy setpoint for check_position func
             print('d0 Setpoints list as of now', setpoints_0)
@@ -458,7 +472,7 @@ def drone_0():
             #After lowering,PID velocitiy cofntrol for precise centring will take place based on distance from Aruco centre to camera centre and the current height of the drone 
             if m == 0 :
                 if (225-img_proc.position_aruco_y_0)<0:
-                    vi = 0.1
+                    vi = 0.2
                 else:
                     vi = 0
                 vel_0.twist.linear.x = (
@@ -477,8 +491,8 @@ def drone_0():
                     stateMt.local_pos_0.x, stateMt.local_pos_0.y] #Position of the aruco in the field
                 print('d0 Box is at ', img_proc.box_setpoint)
                 #lowering to a height of 1m where the aruco is placed
-                pos_0.pose.position.x = img_proc.box_setpoint[0]+0.2
-                pos_0.pose.position.y = img_proc.box_setpoint[1]+0.2
+                pos_0.pose.position.x = img_proc.box_setpoint[0]
+                pos_0.pose.position.y = img_proc.box_setpoint[1]
                 pos_0.pose.position.z = 1
                 local_pos_pub_0.publish(pos_0)
                 ofb_ctl.setAutoLandMode_0()
@@ -487,7 +501,7 @@ def drone_0():
                 while not stateMt.check_gripper_0 == 'True':
                     if stateMt.local_pos_0.z < 0.25:
                         ofb_ctl.gripper_activate_0(True)
-                stateMt.boxes_in_row -= 1  #******** deducting 1 from dictionary after picking a box
+                stateMt.boxes_in_row -= 1  # deducting 1 from dictionary after picking a box
                 if stateMt.check_gripper_0 == 'True':
                     print('d0 The box has been gripped')
                     land_count += 1
@@ -528,9 +542,8 @@ def drone_0():
                 vel_0.twist.linear.z = 0
                 
                 flag_flip_pos_vol = True  # have to turn the boolean to false if aruco detected
-
+            #Publishing row start velocity
             if flag_flip_pos_vol == True:
-                print('d0 publishing row start velocity')
                 local_vel_pub_0.publish(vel_0)
                 box_dropped = False
 
@@ -551,12 +564,13 @@ def drone_0():
             # Condition whether the drone has reached truck drop point and then to land to drop the box
             if i > 3 and i == (len(setpoints_0) - 2):
                 ofb_ctl.setAutoLandMode_0() 
+                #Loop to ensure that ungripping doesn't happen when drone height is > 2.3m
                 while not stateMt.local_pos_0.z < 2.3:
-                    lol=0
+                    loop=0
                 for o in range(3):
                     ofb_ctl.gripper_activate_0(False)
                     
-                box_dropped = True
+                box_dropped = True #This will ensure that boxes on the truck are not picked up 
                 print("d0 Releasing box")
 
         rate.sleep()
@@ -648,10 +662,10 @@ def drone_1():
 
     
     land_count = 0# No. of times drone landed 
-    flag1 = False #Boolean to start velocity control after drone reaches start of the row
+    flag1 = False #Boolean to start velocity control after drone reaches start of the row,if true row start velocity is published
     previous_y_error = 0#Variable to keep track of the error in y-direction of the previous timestep
     vi = 0 #Integral gain term
-    box_dropped = True #Boolean to ensure that boxes are picked up only after drone reaches row_start points and velocity is published
+    box_dropped = True #Boolean to ensure that boxes are picked up only after drone reaches row_start points and velocity is published,if false boxes are picked up
     flag_flip_pos_vol = False #Boolean to track velocity control once the drone reaches row start
     k = 0#Variable to iterate through the row_spawn list
     m = -1 #Variable to make the drone lower height after box is in required limits, only once
@@ -799,12 +813,13 @@ def drone_1():
             #Conditions whether truck has reached the truck setpoint and 
             if i > 3 and i == (len(setpoints_1) - 2):
                 ofb_ctl.setAutoLandMode_1()
+                #Loop to ensure that ungripping doesn't happen when drone height is > 2.3m
                 while not stateMt.local_pos_1.z<2.3:
-                    lol=0              
+                    loop=0              
                 for o in range(3):    
                     ofb_ctl.gripper_activate_1(False)
                     
-                box_dropped = True
+                box_dropped = True #This will ensure that boxes on the truck are not picked up 
                 print("d1 Releasing box")
 
         rate.sleep()
