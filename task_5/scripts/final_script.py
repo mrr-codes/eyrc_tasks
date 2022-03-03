@@ -388,7 +388,7 @@ def drone_0():
         print("d0 OFFBOARD mode activated")
     offboard_0()
 
-    i = 0
+    i = 0 #Variable to iterate through the setpoints list
     pos_0.pose.position.x = setpoints_0[i][0]
     pos_0.pose.position.y = setpoints_0[i][1]
     pos_0.pose.position.z = setpoints_0[i][2]
@@ -406,15 +406,15 @@ def drone_0():
         else:
             return np.linalg.norm(desired - pos) < 0.5
     
-    land_count = 0 # No. of times landed
-    flag1 = False
+    land_count = 0 # No. of times drone landed
+    flag1 = False #Boolean to start velocity control after drone reaches start of the row
     previous_y_error = 0 #Variable to keep track of the error in y-direction of the previous timestep
-    vi = 0 # Integral term value of the PID control 
-    box_dropped = True  #Boolean to track whether the box is dropped and avoid drone from landing if box is not dropped
+    vi = 0 #Integral gain term
+    box_dropped = True  #Boolean to ensure that boxes are picked up only after drone reaches row_start points and velocity is published
     flag_flip_pos_vol = False #Boolean to track velocity control once the drone reaches row start
-    k = 0
+    k = 0 #Variable to iterate through the row_spawn list
     m = -1 #Variable to make the drone lower height after box is in required limits, only once
-    x = 0
+    x = 0 #Variable condition for adding the first row search setpoint
     ofb_ctl.setArm_0()
     while not rospy.is_shutdown():
 
@@ -422,7 +422,7 @@ def drone_0():
         ofb_ctl.offboard_set_mode_0()
         reached = check_position_0()
 
-# Condition for clearing the previous setpoints list then append row search start setpoints, once a box is dropped 
+        # Condition for clearing the previous setpoints list then append row search start setpoints, once a box is dropped 
         if i > 4 and (len(setpoints_0)-1):
             print('d0 clearing spts.')
             setpoints_0.clear()
@@ -430,27 +430,24 @@ def drone_0():
             k += 1
             vi = 0.04
             previous_y_error = 0
-            setpoints_0.extend([(stateMt.local_pos_0.x,stateMt.local_pos_0.y,6),stateMt.row_spawn_sp0[k],(0,0,4)])
+            setpoints_0.extend([(stateMt.local_pos_0.x,stateMt.local_pos_0.y,6),stateMt.row_spawn_sp0[k],(0,0,4)])#Raising drone to a height of 6m setpoint,appending Kth element of row_spawn list and (0,0,4) works as a dummy setpoint for check_position func
             print('d0 Setpoints list as of now', setpoints_0)
 
-# Setting necessariy variables on reaching row search start
+        # Setting necessary variables on reaching row search start
         if  i==2 and flag_flip_pos_vol == True :
             box_dropped = False
             m = -1
             print("d0 setting m to -1")
 
-        #if the aruco marker is detected and there is no box
+        #if the aruco marker is detected and there is no box gripped
         if len(img_proc.Detected_ArUco_markers_0) > 0 and box_dropped == False:
-
             flag_flip_pos_vol = False
             img_proc.aruco_thresh_bool = True # If Aruco detected: True
             
             if (m < 0):
-                flag_flip_pos_vol = False
                 #If drone is within close vicinity to box centre, lowering of height will be executed once
                 if 150 < img_proc.position_aruco_x_0 < 250:
-                    if stateMt.local_pos_0.x> 3:
-                        vi = 0.07
+
                     print('d0 publishing set pt to decrease height to 1m')
                     pos_0.pose.position.x = stateMt.local_pos_0.x
                     pos_0.pose.position.y = stateMt.row_spawn_sp0[k][1]
@@ -458,7 +455,7 @@ def drone_0():
                     local_pos_pub_0.publish(pos_0)
                     rospy.sleep(3)
                     m += 1
-            #After lowering,PID velocitiy cofntrol for precise centring will take place based on distance from Aruco centre to camera centre
+            #After lowering,PID velocitiy cofntrol for precise centring will take place based on distance from Aruco centre to camera centre and the current height of the drone 
             if m == 0 :
                 if (225-img_proc.position_aruco_y_0)<0:
                     vi = 0.1
@@ -477,19 +474,20 @@ def drone_0():
                 box_id = list(img_proc.Detected_ArUco_markers_0.keys())[0]
 
                 img_proc.box_setpoint = [
-                    stateMt.local_pos_0.x, stateMt.local_pos_0.y]
+                    stateMt.local_pos_0.x, stateMt.local_pos_0.y] #Position of the aruco in the field
                 print('d0 Box is at ', img_proc.box_setpoint)
-
+                #lowering to a height of 1m where the aruco is placed
                 pos_0.pose.position.x = img_proc.box_setpoint[0]+0.2
                 pos_0.pose.position.y = img_proc.box_setpoint[1]+0.2
                 pos_0.pose.position.z = 1
                 local_pos_pub_0.publish(pos_0)
                 ofb_ctl.setAutoLandMode_0()
                 print('d0 Attempted to land c=', str(land_count))
+                #loop to ensure proper gripping 
                 while not stateMt.check_gripper_0 == 'True':
                     if stateMt.local_pos_0.z < 0.25:
                         ofb_ctl.gripper_activate_0(True)
-                stateMt.boxes_in_row -= 1  
+                stateMt.boxes_in_row -= 1  #******** deducting 1 from dictionary after picking a box
                 if stateMt.check_gripper_0 == 'True':
                     print('d0 The box has been gripped')
                     land_count += 1
@@ -501,20 +499,20 @@ def drone_0():
                 offboard_0()
                 setpoint = (stateMt.local_pos_0.x,
                             stateMt.local_pos_0.y, 3)
-                setpoints_0.insert(i+1, setpoint)
+                setpoints_0.insert(i+1, setpoint) #Inserting setpoint for drone to raise to a height after picking up the box
                 i = i+1
                 print('d0 i increased to ', i, 'after re-arming')
                 print('d0 Setting flag1 to false again')
                 flag1 = False
                 local_pos_pub_0.publish(pos_0)
                 
-                truck_pts = stateMt.calculate_truck_point(box_id, 0)
+                truck_pts = stateMt.calculate_truck_point(box_id, 0)#Calculating truck_setpoint based on the id of the box and drone number
                 setpoints_0.extend(
-                    [truck_pts[0], truck_pts[1], (0, 0, 0)])
+                    [truck_pts[0], truck_pts[1], (0, 0, 0)])#Appending truck_setpoints and a dummy point for check_position func
                 print('d0 Setpoints list as of now', setpoints_0)
 
             previous_y_error = img_proc.position_aruco_y_0 - \
-                (200 + 80/stateMt.local_pos_0.z)
+                (200 + 80/stateMt.local_pos_0.z)#Calculating the previous y error based on distance between aruco and drone,height
 
         elif img_proc.aruco_thresh_bool == False:
             ofb_ctl.offboard_set_mode_0()
@@ -522,14 +520,14 @@ def drone_0():
             pos_0.pose.position.x = setpoints_0[i][0]
             pos_0.pose.position.y = setpoints_0[i][1]
             pos_0.pose.position.z = setpoints_0[i][2]
-
+            
+            #Condition for checking whether drone is at row start i.e coordinates in multiples of 4, and then executing velocity control
             if reached == True and  x!= 0 and (abs(setpoints_0[i][1]) % 4 == 0):
-                #print('d0 At row start velocity control')
                 vel_0.twist.linear.x = 1.5
                 vel_0.twist.linear.y = 0
-                vel_0.twist.linear.z = -0.05
+                vel_0.twist.linear.z = 0
                 
-                flag_flip_pos_vol = True  # have to turn it false in aruco detected
+                flag_flip_pos_vol = True  # have to turn the boolean to false if aruco detected
 
             if flag_flip_pos_vol == True:
                 print('d0 publishing row start velocity')
@@ -537,12 +535,12 @@ def drone_0():
                 box_dropped = False
 
             else:
-                # print('d0 Setpoint published is', pos_0.pose.position.x,
-                #       pos_0.pose.position.y, pos_0.pose.position.z)
                 local_pos_pub_0.publish(pos_0)
 
+            # Condition if drone has reached given setpoint and then to increment setpoints iterator
             if reached == True and flag1 == False:
                 print("d0 Reached goal")
+                #For adding initial points once
                 while x == 0:
                     setpoints_0.extend([stateMt.row_spawn_sp0[k],(0,4,4)])
                     print('d0 after reaching goal setpoints are', setpoints_0)
@@ -550,7 +548,7 @@ def drone_0():
 
                 i = i+1
                 print('d0 i increased to ', i, 'after reaching goal')
-
+            # Condition whether the drone has reached truck drop point and then to land to drop the box
             if i > 3 and i == (len(setpoints_0) - 2):
                 ofb_ctl.setAutoLandMode_0() 
                 while not stateMt.local_pos_0.z < 2.3:
@@ -568,11 +566,12 @@ def drone_1():
     stateMt = stateMoniter()
     ofb_ctl = offboard_control()
     img_proc = image_processing()
+    # Initialize publishers
     local_pos_pub_1 = rospy.Publisher(
         '/edrone1/mavros/setpoint_position/local', PoseStamped, queue_size=10)
     local_vel_pub_1 = rospy.Publisher(
         '/edrone1/mavros/setpoint_velocity/cmd_vel', TwistStamped, queue_size=10)
-    
+    # Intializing Subscribers 
     rospy.Subscriber("/edrone1/mavros/state", State, stateMt.stateCb_1)
     rospy.Subscriber("/edrone1/mavros/local_position/pose",
                      PoseStamped, stateMt.posCb_1)
@@ -584,8 +583,8 @@ def drone_1():
 
     rate = rospy.Rate(20.0)
 
-    setpoints_1= [(0, 0, 3)]
-
+    setpoints_1= [(0, 0, 3)]#setpoints list
+    # Create empty message containers for position and velocity messages 
     pos_1 = PoseStamped()
     pos_1.pose.position.x = 0
     pos_1.pose.position.y = 0
@@ -621,7 +620,7 @@ def drone_1():
         print("d1 OFFBOARD mode activated")
     offboard_1()
 
-    i = 0
+    i = 0#Variable to iterate through the setpoints list
     pos_1.pose.position.x = setpoints_1[i][0]
     pos_1.pose.position.y = setpoints_1[i][1]
     pos_1.pose.position.z = setpoints_1[i][2]
@@ -634,6 +633,7 @@ def drone_1():
                         stateMt.local_pos_1.z))
         while np.linalg.norm(drone_0 - drone_1) < 0.5:
             rospy.sleep(1)
+    # Checking the accuracy of the drone position to desired position
     def check_position_1():
         desired = np.array(
             (setpoints_1[i][0], setpoints_1[i][1], setpoints_1[i][2]))
@@ -647,16 +647,15 @@ def drone_1():
             return np.linalg.norm(desired - pos) < 0.5
 
     
-    land_count = 0 
-    flag1 = False
-    previous_x_error = 0
-    previous_y_error = 0
-    vi = 0.07
-    box_dropped = True
-    flag_flip_pos_vol = False
-    k = 0
-    m = -1
-    x = 0
+    land_count = 0# No. of times drone landed 
+    flag1 = False #Boolean to start velocity control after drone reaches start of the row
+    previous_y_error = 0#Variable to keep track of the error in y-direction of the previous timestep
+    vi = 0 #Integral gain term
+    box_dropped = True #Boolean to ensure that boxes are picked up only after drone reaches row_start points and velocity is published
+    flag_flip_pos_vol = False #Boolean to track velocity control once the drone reaches row start
+    k = 0#Variable to iterate through the row_spawn list
+    m = -1 #Variable to make the drone lower height after box is in required limits, only once
+    x = 0 #Variable condition for adding the first row search setpoint
     ofb_ctl.setArm_1()
 
     while not rospy.is_shutdown():
@@ -666,6 +665,7 @@ def drone_1():
         reached = check_position_1()
         crash_func()
 
+        # Condition for clearing the previous setpoints list then append row search start setpoints, once a box is dropped
         if i > 4 and (len(setpoints_1)-1):
             print('d1 clearing spts.')
             setpoints_1.clear()
@@ -675,12 +675,14 @@ def drone_1():
             setpoints_1.extend([(stateMt.local_pos_1.x,stateMt.local_pos_1.y,7),stateMt.row_spawn_sp1[k],(0,0,4)])
             print('d1 Setpoints list as of now', setpoints_1)
 
+        # Setting necessary variables on reaching row search start
         if  i==2 and flag_flip_pos_vol == True :
             print(i)
             box_dropped = False
             m = -1
             print("d1 setting m to -1")
-
+            
+        #if the aruco marker is detected and there is no box gripped
         if len(img_proc.Detected_ArUco_markers_1) > 0 and box_dropped == False:
             
             flag_flip_pos_vol = False
@@ -688,9 +690,8 @@ def drone_1():
 
             if (m < 0):
                 flag_flip_pos_vol = False
+                #If drone is within close vicinity to box centre, lowering of height will be executed once
                 if 150 < img_proc.position_aruco_x_1 < 250:
-                    if stateMt.local_pos_1.x > 3:
-                        vi = 0.08
                     print('d1 publishing set pt to decrease height to 1m')
                     pos_1.pose.position.x = stateMt.local_pos_1.x
                     pos_1.pose.position.y = stateMt.row_spawn_sp1[k][1]
@@ -698,6 +699,7 @@ def drone_1():
                     local_pos_pub_1.publish(pos_1)
                     rospy.sleep(5)
                     m += 1
+            #After lowering,PID velocitiy cofntrol for precise centring will take place based on distance from Aruco centre to camera centre and the current height of the drone 
             if m==0:
                 if (225-img_proc.position_aruco_y_1)<0:
                     vi = 0.2
@@ -707,14 +709,13 @@ def drone_1():
                     ((img_proc.position_aruco_x_1 - 200)*stateMt.local_pos_1.z)/300)
                 vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/400) - (
                     img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z) - previous_y_error)/40)-vi
-                # print('d1 Box detected, the x and y velocities are:',
-                #     vel_1.twist.linear.x, vel_1.twist.linear.y)
                 vel_1.twist.linear.z = (1.5-stateMt.local_pos_1.z)/20
-                #print('d1 publishing PD velocity')
+                
                 local_vel_pub_1.publish(vel_1)
-                #print(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2),img_proc.exo_rad_1,img_proc.position_aruco_y_0)
+                
 
-            #if ((img_proc.position_aruco_x_0-10) < (200) < (img_proc.position_aruco_x_0+10)) and (img_proc.position_aruco_y_0 -25  < (225) < (img_proc.position_aruco_y_0)):
+    
+            # When camera centre aligns under desired area inside the exocircle, box gripping sequence starts
             if(((200 - img_proc.position_aruco_x_1)**2 + (225-img_proc.position_aruco_y_1)**2)<= (img_proc.exo_rad_1)**2) and (225 <img_proc.position_aruco_y_1):
                 flag1 = True
                 box_id = list(img_proc.Detected_ArUco_markers_1.keys())[0]
@@ -722,16 +723,13 @@ def drone_1():
                 img_proc.box_setpoint = [
                     stateMt.local_pos_1.x, stateMt.local_pos_1.y]
                 print('d1 Box is at ', img_proc.box_setpoint)
-                
+                #lowering to a height of 1m where the aruco is placed
                 pos_1.pose.position.x = img_proc.box_setpoint[0]
                 pos_1.pose.position.y = img_proc.box_setpoint[1]
                 pos_1.pose.position.z = 1
                 local_pos_pub_1.publish(pos_1)
                 ofb_ctl.setAutoLandMode_1()
                 print('d1 Attempted to land c=', str(land_count))
-                # rospy.sleep(12)
-                # print("d1 Gripping the box")
-                # ofb_ctl.gripper_activate_1(True)
                 while not stateMt.check_gripper_1 == 'True':
                      if stateMt.local_pos_1.z < 0.25:
                         ofb_ctl.gripper_activate_1(True)
@@ -743,29 +741,24 @@ def drone_1():
                 else:
                     print('d1 The box cannot yet be gripped')
 
-                img_proc.aruco_thresh_bool = False
-                #dummy_points_1()
-                #arm_1()
-                #ofb_ctl.setArm_1()
+                img_proc.aruco_thresh_bool = False                
                 offboard_1()
-                #ofb_ctl.setArm_1()
                 setpoint = (stateMt.local_pos_1.x,
                             stateMt.local_pos_1.y, 4)
-                setpoints_1.insert(i+1, setpoint)
+                setpoints_1.insert(i+1, setpoint) #Inserting setpoint for drone to raise to a height after picking up the box
                 i = i+1
                 print('d1 i increased to ', i, 'after re-arming')
                 print('d1 Setting flag1 to false again')
                 flag1 = False
                 local_pos_pub_1.publish(pos_1)
 
-                truck_pts = stateMt.calculate_truck_point(box_id, 1)
+                truck_pts = stateMt.calculate_truck_point(box_id, 1)#Calculating truck_setpoint based on the id of the box and drone number
                 setpoints_1.extend(
-                    [truck_pts[0], truck_pts[1],(0, 0, 0)])
+                    [truck_pts[0], truck_pts[1],(0, 0, 0)])#Appending truck_setpoints and a dummy point for check_position func
                 print('d1 Setpoints list as of now', setpoints_1)
 
-            #previous_x_error = img_proc.position_aruco_x_1 - 200
-            previous_y_error = img_proc.position_aruco_y_1 - \
-                (200 + 80/stateMt.local_pos_1.z)
+                previous_y_error = img_proc.position_aruco_y_1 - \
+                (200 + 80/stateMt.local_pos_1.z)#Calculating the previous y error based on distance between aruco and drone,height
 
         elif img_proc.aruco_thresh_bool == False:
             ofb_ctl.offboard_set_mode_1()
@@ -774,11 +767,11 @@ def drone_1():
             pos_1.pose.position.y = setpoints_1[i][1]
             pos_1.pose.position.z = setpoints_1[i][2]
 
+            #Condition for checking whether drone is at row start i.e coordinates in multiples of 4, and then executing velocity control
             if reached == True and (setpoints_1[i][1] != 0 and abs(setpoints_1[i][1]) % 4 == 0):
-                #print('d1 At row start velocity control')
                 vel_1.twist.linear.x = 1.5
                 vel_1.twist.linear.y = 0
-                vel_1.twist.linear.z = -0.05
+                vel_1.twist.linear.z = 0
 
                 flag_flip_pos_vol = True  # have to turn it false in aruco detected
 
@@ -788,12 +781,11 @@ def drone_1():
                 box_dropped = False
 
             else:
-                # print('d1 Setpoint published is', pos_1.pose.position.x,
-                #       pos_1.pose.position.y, pos_1.pose.position.z)
                 local_pos_pub_1.publish(pos_1)
-
+            # Condition if drone has reached given setpoint and then to increment setpoints iterator
             if reached == True and flag1 == False:
                 print("d1 Reached goal")
+                #For adding initial points once
                 while x == 0:
                     print(k)
                     print(stateMt.row_spawn_sp1)
@@ -804,7 +796,7 @@ def drone_1():
 
                 i = i+1
                 print('d1 i increased to ', i, 'after reaching goal')
-
+            #Conditions whether truck has reached the truck setpoint and 
             if i > 3 and i == (len(setpoints_1) - 2):
                 ofb_ctl.setAutoLandMode_1()
                 while not stateMt.local_pos_1.z<2.3:
@@ -821,10 +813,10 @@ def drone_1():
 if __name__ == '__main__':
 
     try:
-        p1 = Process(target=drone_0)
-        p1.start()
-        p2 = Process(target=drone_1)
-        p2.start()
+        p1 = Process(target=drone_0) #Assigning the drone 0 fucntion as the first process
+        p1.start() #starting process 1
+        p2 = Process(target=drone_1)#Assigning the drone 1 fucntion as the second process
+        p2.start()#starting process 2
 
         p1.join()
         p2.join()
