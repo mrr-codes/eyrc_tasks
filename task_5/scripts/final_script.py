@@ -27,7 +27,19 @@ import cv2
 import cv2.aruco as aruco
 import math
 from multiprocessing import Process
-
+""" Task Implementation: We are splitting spawn_info data & accessing it in two separate lists. One list is assigned to drone0 & other
+to drone1. After a split row number is passed to a function that inputs row no, the drone number returns a 
+setpoint specific to the drone & on the frequency of box spawn. Lists are populated with tuples of row setpoints.
+After drones take off to 3 m height, the row setpoint lists are added to the drone setpoints list.
+After reaching the setpoint, velocity control kicks in, moving the drones straight along the row with a velocity
+of 1.5 m/s. Along the way once a box is in the field of view the drone lowers to a height of 1 m and precise
+positioning takes place by  PID algorithm for velocities that takes into account distance between the camera centre 
+& aruco centre and the drone's current height. When the centre is to the left of the circle(the distance between 
+the aruco centre and bottom corner is the radius of the circle), the autoland is activated and the gripper is 
+activated on the box. During the land process the id of the current box is sent to a function that calculates truck 
+setpoints based on the drone number, aruco id, and we append the points to the setpoint list of the drone. Once the
+drone reaches near the truck gridpoint it goes to a lower height, drops the box, setpoint for drone to raise
+to a height is appended.Next row start setpoints are calculated and the process repeats."""
 
 class offboard_control:
 
