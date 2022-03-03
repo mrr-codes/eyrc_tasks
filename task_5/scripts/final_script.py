@@ -1,4 +1,5 @@
-""" Task Implementation: We are splitting spawn_info data & accessing it in two separate lists. One list is assigned to drone0 & other
+#!/usr/bin/env python3
+""" Task Implementation gigst: We are splitting spawn_info data & accessing it in two separate lists. One list is assigned to drone0 & other
 to drone1. After a split row number is passed to a function that inputs row no, the drone number returns a 
 setpoint specific to the drone & on the frequency of box spawn. Lists are populated with tuples of row setpoints.
 After drones take off to 3 m height, the row setpoint lists are added to the drone setpoints list.
@@ -12,8 +13,6 @@ setpoints based on the drone number, aruco id, and we append the points to the s
 drone reaches near the truck gridpoint it goes to a lower height, drops the box, setpoint for drone to raise
 to a height is appended.Next row start setpoints are calculated and the process repeats."""
 
-
-#!/usr/bin/env python3
 import rospy
 from geometry_msgs.msg import *
 from mavros_msgs.msg import *
@@ -285,10 +284,17 @@ class image_processing:
         tl = np_arr[0, 0]
         tr = np_arr[0, 1]
         br = np_arr[0, 2]
+        bl = np_arr[0, 3]
         self.bcorner_0 = br
         self.bcorner_1 = br
         self.ctr = [(tl[0]+br[0])/2, (tl[1]+br[1])/2]
-        return self.ctr
+        diffs = [(tl[0]-bl[0]), (tl[1]-bl[1])]
+        degree = math.atan2(diffs[0], diffs[1])*180/math.pi
+        final_degree = degree+float(270)
+        if (final_degree > 360.0):
+            final_degree -= 360.0
+        ArUco_marker_angles = final_degree 
+        return self.ctr, ArUco_marker_angles
 
     #Callback function for drone 0 to convert the image to CV2 format and drawing an exocircle on the frame
     def image_callback_0(self, data):
@@ -300,7 +306,7 @@ class image_processing:
            
             self.Detected_ArUco_markers_0 = self.detect_ArUco(self.img)
             for key in self.Detected_ArUco_markers_0.keys():
-                self.centre = self.calcuate_centre(
+                self.centre, angle_detected = self.calcuate_centre(
                     self.Detected_ArUco_markers_0[key])
 
                 self.position_aruco_x_0 = self.centre[0] #x-coordinate of centre of aruco in pixels
@@ -308,7 +314,10 @@ class image_processing:
                 self.bcorner_0 = self.bcorner_0 #(x,y) coordinates of bottom corner of aruco in pixels
                 self.exo_rad_0=math.sqrt((self.bcorner_0[0]-self.position_aruco_x_0)**2+(self.bcorner_0[1]-self.position_aruco_y_0)**2)# calculating radius of exo-circle(euclidean diatance between centre and bottom corner)
                 cv2.circle(self.img,(int(self.position_aruco_x_0),int(self.position_aruco_y_0)),radius=abs(int(self.exo_rad_0)),color= (0,225,0),thickness=2)#drawing an exo circle around the box with exo_rad_1 as the radius 
-            
+
+                samp = str(round(angle_detected))
+                cv2.putText(self.img, samp, ((int(self.ctr[0])-90), int(self.ctr[1])),fontFace=cv2.FONT_HERSHEY_COMPLEX, thickness=2, fontScale=0.75, color=(0, 255, 0))
+
             cv2.imshow('check_frame_0', self.img)#drone_0 camera feed
             cv2.waitKey(1)
 
@@ -325,13 +334,17 @@ class image_processing:
 
             self.Detected_ArUco_markers_1 = self.detect_ArUco(self.img)
             for key in self.Detected_ArUco_markers_1.keys():
-                self.centre = self.calcuate_centre(
+                self.centre, angle_detected = self.calcuate_centre(
                     self.Detected_ArUco_markers_1[key])
                 self.position_aruco_x_1 = self.centre[0] #x-coordinate of centre of aruco in pixels
                 self.position_aruco_y_1 = self.centre[1] #y-coordinate of centre of aruco in pixels
                 self.bcorner_1 = self.bcorner_1#(x,y) coordinates of bootom corner of aruco in pixels
                 self.exo_rad_1=math.sqrt((self.bcorner_1[0]-self.position_aruco_x_1)**2+(self.bcorner_1[1]-self.position_aruco_y_1)**2)# calculating radius of exo-circle(euclidean diatance between centre and bottom corner)
                 cv2.circle(self.img,(int(self.position_aruco_x_1),int(self.position_aruco_y_1)),radius=abs(int(self.exo_rad_1)),color= (0,225,0),thickness=2)#drawing an exo circle around the box with exo_rad_1 as the radius          
+                
+
+                samp = str(round(angle_detected))
+                cv2.putText(self.img, samp, ((int(self.ctr[0])-90), int(self.ctr[1])),fontFace=cv2.FONT_HERSHEY_COMPLEX, thickness=2, fontScale=0.75, color=(0, 255, 0))
                 
             cv2.imshow('check_frame_1', self.img)#drone_1 camera feed
             cv2.waitKey(1)               
