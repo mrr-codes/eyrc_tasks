@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
-""" Task Implementation gigst: We are splitting spawn_info data & accessing it in two separate lists. One list is assigned to drone0 & other
+"""
+* Team Id : SS-1403
+* Author List : Manas Reddy Ramidi, Juvvi Manas Sashank, Rikin Ramachandran, Soham Biswas
+* Filename: SS_1234_strawberry_stacker.py
+* Theme: Strawbeery stacker
+* Classes and Functions: offboard_control,stateMoniter,image_processing,drone_0,drone_1
+* Global Variables: NONE
+"""
+
+""" Task Implementation gist: We are splitting spawn_info data & accessing it in two separate lists. One list is assigned to drone0 & other
 to drone1. After a split row number is passed to a function that inputs row no, the drone number returns a 
 setpoint specific to the drone & on the frequency of box spawn. Lists are populated with tuples of row setpoints.
 After drones take off to 3 m height, the row setpoint lists are added to the drone setpoints list.
@@ -27,26 +36,17 @@ import cv2
 import cv2.aruco as aruco
 import math
 from multiprocessing import Process
-""" Task Implementation: We are splitting spawn_info data & accessing it in two separate lists. One list is assigned to drone0 & other
-to drone1. After a split row number is passed to a function that inputs row no, the drone number returns a 
-setpoint specific to the drone & on the frequency of box spawn. Lists are populated with tuples of row setpoints.
-After drones take off to 3 m height, the row setpoint lists are added to the drone setpoints list.
-After reaching the setpoint, velocity control kicks in, moving the drones straight along the row with a velocity
-of 1.5 m/s. Along the way once a box is in the field of view the drone lowers to a height of 1 m and precise
-positioning takes place by  PID algorithm for velocities that takes into account distance between the camera centre 
-& aruco centre and the drone's current height. When the centre is to the left of the circle(the distance between 
-the aruco centre and bottom corner is the radius of the circle), the autoland is activated and the gripper is 
-activated on the box. During the land process the id of the current box is sent to a function that calculates truck 
-setpoints based on the drone number, aruco id, and we append the points to the setpoint list of the drone. Once the
-drone reaches near the truck gridpoint it goes to a lower height, drops the box, setpoint for drone to raise
-to a height is appended.Next row start setpoints are calculated and the process repeats."""
+
 
 class offboard_control:
 
     def __init__(self):
         rospy.init_node('offboard_control', anonymous=True)
 
-
+    '''* Function Name: setArm_0
+    * Output:Arms the drone
+    * Logic: arming service is called
+    * Example Call: setArm_0()'''
     def setArm_0(self):
         rospy.wait_for_service('/edrone0/mavros/cmd/arming')
 
@@ -68,7 +68,10 @@ class offboard_control:
             armService_1(True)
         except rospy.ServiceException as e:
             print("Service arming call failed: %s" % e)
-
+    '''* Function Name: offboard_set_mode_0
+    * Output:Drone mode is changed to offboard
+    * Logic: offboard service is called
+    * Example Call: offboard_set_mode_0'''
     def offboard_set_mode_0(self):
         rospy.wait_for_service('/edrone0/mavros/set_mode')
         try:
@@ -91,7 +94,10 @@ class offboard_control:
 
         except rospy.ServiceException as e:
             print("Service setting mode call failed: %s" % e)
-
+    '''* Function Name:setAutoLandMode_0 
+    * Output:Drone mode is changed to autoland
+    * Logic: Autoland service is called
+    * Example Call: setAutoLandMode_0()'''
     def setAutoLandMode_0(self):
         rospy.wait_for_service('/edrone0/mavros/set_mode')
 
@@ -108,7 +114,10 @@ class offboard_control:
             '/edrone1/mavros/set_mode', mavros_msgs.srv.SetMode)
         set_ModeService_1(custom_mode='AUTO.LAND')
         print("d1 inside autoland")
-
+    '''* Function Name: gripper_activate_0
+    * Output:Drone gripper is activated or de-activated
+    * Logic: gripper service is called
+    * Example Call: gripper_activate_0(True)'''
     def gripper_activate_0(self, grip_control):
         rospy.wait_for_service('/edrone0/activate_gripper')
         gripper = rospy.ServiceProxy('/edrone0/activate_gripper', Gripper)
@@ -183,6 +192,11 @@ class stateMoniter:
         self.check_gripper_1 = msg.data
         
 # Function for calculating row search start setpoints from row no. and drone no and the number of boxes in a particular row.
+    '''* Function Name:calculate_row_start
+    * Input:row_no,drone_no
+    * Output:Calculates row start point
+    * Logic: row_no and drone_no are passed as inputs and row start points are calculated based on number of boxes in that row
+    * Example Call: calculate_row_start(msg.data,1)'''
     def calculate_row_start(self, row_no, drone_no):
         
         self.boxes_in_row = self.box_counts[row_no]
@@ -209,6 +223,11 @@ class stateMoniter:
             else:
                 return(-1.4,4*(row_no-16),3)
 #Callback of spawn info topic
+    '''* Function Name: spawn_clbk
+    * Input: msg (spawn_info data)
+    * Output: Appends the row start points to a list
+    * Logic:Spawn_info data is split alternatively between the drones and row start values are appended to a list
+    * Example Call: Callback function'''
     def spawn_clbk(self, msg):
         #Dictionary to keep a track of number of boxes in a particular row
         self.box_counts[msg.data] = self.box_counts.get(msg.data, 0) + 1
@@ -222,7 +241,12 @@ class stateMoniter:
             print('d1 Row_spawn list',self.row_spawn_sp1)
         #Incrementing the spawn_count after calculating row start values    
         self.spawn_count += 1
-
+        
+    '''* Function Name: calculate_truck_point
+    * Input: id-> id of box, drone_no.
+    * Output: Array of truck grid setpoint tuples
+    * Logic: calculates desired truck points based on inputs
+    * Example Call: example = calculate_truck_point(1,1)'''
     def calculate_truck_point(self, id, drone_no):
         if id == 2:  # blue box
             if drone_no == 0:
@@ -276,6 +300,12 @@ class image_processing:
         self.bcorner_1 = []
         self.exo_rad_0 = 0
         self.exo_rad_1 = 0
+        
+    '''* Function Name: detect_Aruco
+    * Input: img->cv2 img data
+    * Output: dictionary of id and corners
+    * Logic: apply cv2, aruco libraries to extract data 
+    * Example Call: example = detect_Aruco(img)''' 
     def detect_ArUco(self, img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) #converting the image to a grayscale image
         aruco_dict = aruco.Dictionary_get(aruco.DICT_5X5_250)
@@ -289,7 +319,11 @@ class image_processing:
             Detected_ArUco_markers_func = dict(zip(ids[:, 0], corners))
 
         return Detected_ArUco_markers_func
-
+    '''* Function Name: calculate_centre
+    * Input: corners(list of corners of aruco)
+    * Output:Centre of the aruco, orientation of aruco in degrees
+    * Logic: The centre is calculated based on corner values,and the orientation is calculated based on differences between corner values using atan function
+    * Example Call: calcuate_centre(self.Detected_ArUco_markers_0[key])'''
     #A function to calculate the centre of the AruCo Marker
     def calcuate_centre(self, corners):
         np_arr = corners
@@ -307,7 +341,12 @@ class image_processing:
             final_degree -= 360.0
         ArUco_marker_angles = final_degree 
         return self.ctr, ArUco_marker_angles
-
+    '''* Function Name:image_callback_0
+    * Input: data(an image frame from the drone camera)
+    * Output: The image frame with the centre marked and an exocircle on the aruco marker and also displays the angle of the Aruco
+    * Logic: The image is converted to CV2 format and the centre is calculated using corner points
+    *        After this an exocircle is drawn with the CV2 circle function with centre of Aruco as the centre of the circle
+    * Example Call: Callback Function'''
     #Callback function for drone 0 to convert the image to CV2 format and drawing an exocircle on the frame
     def image_callback_0(self, data):
 
@@ -337,6 +376,12 @@ class image_processing:
             print(e)
             return
     #Callback function for drone 1 to convert the image to CV2 form an drawing an exocircle on the frame
+    '''* Function Name:image_callback_1
+    * Input: data(an image frame from the drone camera)
+    * Output: The image frame with the centre marked and an exocircle on the aruco marker and also displays the angle of the Aruco
+    * Logic: The image is converted to CV2 format and the centre is calculated using corner points
+    *        After this an exocircle is drawn with the CV2 circle function with centre of Aruco as the centre of the circle
+    * Example Call: Callback Function'''
     def image_callback_1(self, data):   
 
         try:
@@ -366,7 +411,20 @@ class image_processing:
             print(e)
             return
 
-
+'''* Function Name: drone_0
+* Input: None
+* Output: The operation of Drone 0
+* Logic:After drones take off to 3 m height, the row setpoint lists are added to the drone setpoints list.
+        After reaching the setpoint, velocity control kicks in, moving the drones straight along the row with a velocity
+        of 1.5 m/s. Along the way once a box is in the field of view the drone lowers to a height of 1 m and precise
+        positioning takes place by  PID algorithm for velocities that takes into account distance between the camera centre 
+        & aruco centre and the drone's current height. When the centre is to the left of the circle(the distance between 
+        the aruco centre and bottom corner is the radius of the circle), the autoland is activated and the gripper is 
+        activated on the box. During the land process the id of the current box is sent to a function that calculates truck 
+        setpoints based on the drone number, aruco id, and we append the points to the setpoint list of the drone. Once the
+        drone reaches near the truck gridpoint it goes to a lower height, drops the box, setpoint for drone to raise
+        to a height is appended.Next row start setpoints are calculated and the process repeats. 
+'''
 #function for operating Drone 0
 def drone_0():
 
@@ -432,7 +490,12 @@ def drone_0():
     pos_0.pose.position.x = setpoints_0[i][0]
     pos_0.pose.position.y = setpoints_0[i][1]
     pos_0.pose.position.z = setpoints_0[i][2]
-
+    '''* Function Name: check_position_0
+    * Input: None
+    * Output: Boolean
+    * Logic: Continuously subtracts the current position of drone from the current setpoint 
+      returns true on reaching threshold    
+    * Example Call: example_position= check_position_0'''
     # Checking the accuracy of the drone position to desired position
     def check_position_0():
         desired = np.array(
@@ -583,6 +646,7 @@ def drone_0():
                     setpoints_0.extend([stateMt.row_spawn_sp0[k],(0,4,4)])
                     print('d0 after reaching goal setpoints are', setpoints_0)
                     x = x+1
+                    rospy.sleep(2)
 
                 i = i+1
                 print('d0 i increased to ', i, 'after reaching goal')
@@ -599,7 +663,20 @@ def drone_0():
                 print("d0 Releasing box")
 
         rate.sleep()
-
+'''* Function Name: drone_1
+* Input: None
+* Output: The operation of Drone 1
+* Logic:After drones take off to 3 m height, the row setpoint lists are added to the drone setpoints list.
+        After reaching the setpoint, velocity control kicks in, moving the drones straight along the row with a velocity
+        of 1.5 m/s. Along the way once a box is in the field of view the drone lowers to a height of 1 m and precise
+        positioning takes place by  PID algorithm for velocities that takes into account distance between the camera centre 
+        & aruco centre and the drone's current height. When the centre is to the left of the circle(the distance between 
+        the aruco centre and bottom corner is the radius of the circle), the autoland is activated and the gripper is 
+        activated on the box. During the land process the id of the current box is sent to a function that calculates truck 
+        setpoints based on the drone number, aruco id, and we append the points to the setpoint list of the drone. Once the
+        drone reaches near the truck gridpoint it goes to a lower height, drops the box, setpoint for drone to raise
+        to a height is appended.Next row start setpoints are calculated and the process repeats. 
+'''
 # Function for Drone 1
 def drone_1():
     stateMt = stateMoniter()
@@ -663,6 +740,12 @@ def drone_1():
     pos_1.pose.position.x = setpoints_1[i][0]
     pos_1.pose.position.y = setpoints_1[i][1]
     pos_1.pose.position.z = setpoints_1[i][2]
+    '''* Function Name: crash_func
+    * Input: None
+    * Output: Rospy.sleep for 2 seconds for drone_1
+    * Logic: Continuously subtracts the current position of drone_0 from drone_1
+      drone_1 stops if it is too close to drone_0    
+    * Example Call: crash_func()'''
     def crash_func():
         drone_0 = np.array((stateMt.local_pos_0.x,
                         stateMt.local_pos_0.y,
@@ -672,6 +755,12 @@ def drone_1():
                         stateMt.local_pos_1.z))
         while np.linalg.norm(drone_0 - drone_1) < 0.5:
             rospy.sleep(1)
+    '''* Function Name: check_position_1
+    * Input: None
+    * Output: Boolean
+    * Logic: Continuously subtracts the current position of drone from the current setpoint 
+      returns true on reaching threshold    
+    * Example Call: example_position= check_position_1'''
     # Checking the accuracy of the drone position to desired position
     def check_position_1():
         desired = np.array(
