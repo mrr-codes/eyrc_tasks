@@ -221,7 +221,7 @@ class stateMoniter:
             elif self.boxes_in_row > 1:
                 return (9, 4*(row_no-16), 3)    
             else:
-                return(-1.4,4*(row_no-16),3)
+                return(-2,4*(row_no-16),3)
 #Callback of spawn info topic
     '''* Function Name: spawn_clbk
     * Input: msg (spawn_info data)
@@ -532,7 +532,10 @@ def drone_0():
             i = 0
             k += 1
             previous_y_error = 0
-            setpoints_0.extend([(stateMt.local_pos_0.x,stateMt.local_pos_0.y,6),stateMt.row_spawn_sp0[k],(0,0,4)])#Raising drone to a height of 6m setpoint,appending Kth element of row_spawn list and (0,0,4) works as a dummy setpoint for check_position func
+            try:
+                setpoints_0.extend([(stateMt.local_pos_0.x,stateMt.local_pos_0.y,6),stateMt.row_spawn_sp0[k],(0,0,4)])#Raising drone to a height of 6m setpoint,appending Kth element of row_spawn list and (0,0,4) works as a dummy setpoint for check_position func
+            except:
+                print("Row_spawn_0 is empty")
             print('d0 Setpoints list as of now', setpoints_0)
 
         # Setting necessary variables on reaching row search start
@@ -627,7 +630,7 @@ def drone_0():
             if reached == True and  x!= 0 and (abs(setpoints_0[i][1]) % 4 == 0):
                 vel_0.twist.linear.x = 1.5
                 vel_0.twist.linear.y = 0
-                vel_0.twist.linear.z = 0
+                vel_0.twist.linear.z = -0.15
                 
                 flag_flip_pos_vol = True  # have to turn the boolean to false if aruco detected
             #Publishing row start velocity
@@ -646,7 +649,7 @@ def drone_0():
                     setpoints_0.extend([stateMt.row_spawn_sp0[k],(0,4,4)])
                     print('d0 after reaching goal setpoints are', setpoints_0)
                     x = x+1
-                    rospy.sleep(2)
+                    #rospy.sleep(2)
 
                 i = i+1
                 print('d0 i increased to ', i, 'after reaching goal')
@@ -800,7 +803,10 @@ def drone_1():
             i = 0
             k += 1
             previous_y_error = 0
-            setpoints_1.extend([(stateMt.local_pos_1.x,stateMt.local_pos_1.y,7),stateMt.row_spawn_sp1[k],(0,0,4)])
+            try:
+                setpoints_1.extend([(stateMt.local_pos_1.x,stateMt.local_pos_1.y,7),stateMt.row_spawn_sp1[k],(0,0,4)])
+            except:
+                print("Row_spawn is empty")
             print('d1 Setpoints list as of now', setpoints_1)
 
         # Setting necessary variables on reaching row search start
@@ -825,7 +831,7 @@ def drone_1():
                     pos_1.pose.position.y = stateMt.row_spawn_sp1[k][1]
                     pos_1.pose.position.z = 1.5
                     local_pos_pub_1.publish(pos_1)
-                    rospy.sleep(5)
+                    rospy.sleep(3)
                     m += 1
             #After lowering,PID velocitiy cofntrol for precise centring will take place based on distance from Aruco centre to camera centre and the current height of the drone 
             if m==0:
@@ -838,6 +844,7 @@ def drone_1():
                 vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/400) - (
                     img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z) - previous_y_error)/40)-vi
                 vel_1.twist.linear.z = (1.5-stateMt.local_pos_1.z)/20
+                print(vel_1.twist.linear.y,"drone1111111111111111")
                 
                 local_vel_pub_1.publish(vel_1)
                 
@@ -885,7 +892,7 @@ def drone_1():
                     [truck_pts[0], truck_pts[1],(0, 0, 0)])#Appending truck_setpoints and a dummy point for check_position func
                 print('d1 Setpoints list as of now', setpoints_1)
 
-                previous_y_error = img_proc.position_aruco_y_1 - \
+            previous_y_error = img_proc.position_aruco_y_1 - \
                 (200 + 80/stateMt.local_pos_1.z)#Calculating the previous y error based on distance between aruco and drone,height
 
         elif img_proc.aruco_thresh_bool == False:
@@ -899,7 +906,7 @@ def drone_1():
             if reached == True and (setpoints_1[i][1] != 0 and abs(setpoints_1[i][1]) % 4 == 0):
                 vel_1.twist.linear.x = 1.5
                 vel_1.twist.linear.y = 0
-                vel_1.twist.linear.z = 0
+                vel_1.twist.linear.z = -0.15
 
                 flag_flip_pos_vol = True  # have to turn it false in aruco detected
 
