@@ -22,6 +22,7 @@ setpoints based on the drone number, aruco id, and we append the points to the s
 drone reaches near the truck gridpoint it goes to a lower height, drops the box, setpoint for drone to raise
 to a height is appended.Next row start setpoints are calculated and the process repeats."""
 
+from sqlite3 import Row
 import rospy
 from geometry_msgs.msg import *
 from mavros_msgs.msg import *
@@ -532,6 +533,8 @@ def drone_0():
             i = 0
             k += 1
             previous_y_error = 0
+            while k == len(stateMt.row_spawn_sp0):
+                print('d0 passing time as no setpts.')
             try:
                 setpoints_0.extend([(stateMt.local_pos_0.x,stateMt.local_pos_0.y,6),stateMt.row_spawn_sp0[k],(0,0,4)])#Raising drone to a height of 6m setpoint,appending Kth element of row_spawn list and (0,0,4) works as a dummy setpoint for check_position func
             except:
@@ -649,7 +652,7 @@ def drone_0():
                     setpoints_0.extend([stateMt.row_spawn_sp0[k],(0,4,4)])
                     print('d0 after reaching goal setpoints are', setpoints_0)
                     x = x+1
-                    #rospy.sleep(2)
+                    # rospy.sleep(5)
 
                 i = i+1
                 print('d0 i increased to ', i, 'after reaching goal')
@@ -803,6 +806,8 @@ def drone_1():
             i = 0
             k += 1
             previous_y_error = 0
+            while k == len(stateMt.row_spawn_sp1):
+                print('d1 passing time as no setpts.')
             try:
                 setpoints_1.extend([(stateMt.local_pos_1.x,stateMt.local_pos_1.y,7),stateMt.row_spawn_sp1[k],(0,0,4)])
             except:
@@ -844,7 +849,7 @@ def drone_1():
                 vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/400) - (
                     img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z) - previous_y_error)/40)-vi
                 vel_1.twist.linear.z = (1.5-stateMt.local_pos_1.z)/20
-                print(vel_1.twist.linear.y,"drone1111111111111111")
+                print(vel_1.twist.linear.y,"drone1")
                 
                 local_vel_pub_1.publish(vel_1)
                 
@@ -928,6 +933,7 @@ def drone_1():
                     setpoints_1.extend([stateMt.row_spawn_sp1[k],(0,4,4)])
                     print('after reaching goal setpoints are', setpoints_1)
                     x = x+1
+                    rospy.sleep(5)
 
                 i = i+1
                 print('d1 i increased to ', i, 'after reaching goal')
