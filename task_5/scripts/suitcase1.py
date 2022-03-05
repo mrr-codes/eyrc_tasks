@@ -578,7 +578,7 @@ def drone_0():
                 local_vel_pub_0.publish(vel_0)
 
             # When camera centre aligns under desired area inside the exocircle, box gripping sequence starts
-            if(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2)<= (img_proc.exo_rad_0)**2) and (225 <img_proc.position_aruco_y_0):
+           if(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2)<= (img_proc.exo_rad_0)**2) and ((225 <img_proc.position_aruco_y_0-4) and (193<img_proc.position_aruco_x_0)):
                 flag1 = True
                 box_id = list(img_proc.Detected_ArUco_markers_0.keys())[0]
 
@@ -859,7 +859,7 @@ def drone_1():
 
     
             # When camera centre aligns under desired area inside the exocircle, box gripping sequence starts
-            if(((200 - img_proc.position_aruco_x_1)**2 + (225-img_proc.position_aruco_y_1)**2)<= (img_proc.exo_rad_1)**2) and (225 <img_proc.position_aruco_y_1):
+            if(((200 - img_proc.position_aruco_x_1)**2 + (225-img_proc.position_aruco_y_1)**2)<= (img_proc.exo_rad_1)**2) and ((225 <img_proc.position_aruco_y_1-4) and (193<img_proc.position_aruco_x_1)):
                 flag1 = True
                 box_id = list(img_proc.Detected_ArUco_markers_1.keys())[0]
 
