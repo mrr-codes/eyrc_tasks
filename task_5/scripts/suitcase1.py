@@ -22,7 +22,6 @@ setpoints based on the drone number, aruco id, and we append the points to the s
 drone reaches near the truck gridpoint it goes to a lower height, drops the box, setpoint for drone to raise
 to a height is appended.Next row start setpoints are calculated and the process repeats."""
 
-from sqlite3 import Row
 import rospy
 from geometry_msgs.msg import *
 from mavros_msgs.msg import *
