@@ -569,7 +569,7 @@ def drone_0():
                 if (225-img_proc.position_aruco_y_0)<0:
                     vi = 0.2
                 else:
-                    vi = 0
+                    vi = -0.1
                 vel_0.twist.linear.x = (
                     ((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/300)
                 vel_0.twist.linear.y = -((((img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/400) - (
@@ -587,7 +587,7 @@ def drone_0():
                 print('d0 Box is at ', img_proc.box_setpoint)
                 #lowering to a height of 1m where the aruco is placed
                 pos_0.pose.position.x = img_proc.box_setpoint[0]
-                pos_0.pose.position.y = img_proc.box_setpoint[1]
+                pos_0.pose.position.y = img_proc.box_setpoint[1]+0.2
                 pos_0.pose.position.z = 1
                 local_pos_pub_0.publish(pos_0)
                 ofb_ctl.setAutoLandMode_0()
@@ -846,7 +846,7 @@ def drone_1():
                 if (225-img_proc.position_aruco_y_1)<0:
                     vi = 0.2
                 else:
-                    vi = 0
+                    vi = -0.1
                 vel_1.twist.linear.x = (
                     ((img_proc.position_aruco_x_1 - 200)*stateMt.local_pos_1.z)/300)
                 vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/400) - (
@@ -868,7 +868,7 @@ def drone_1():
                 print('d1 Box is at ', img_proc.box_setpoint)
                 #lowering to a height of 1m where the aruco is placed
                 pos_1.pose.position.x = img_proc.box_setpoint[0]
-                pos_1.pose.position.y = img_proc.box_setpoint[1]
+                pos_1.pose.position.y = img_proc.box_setpoint[1]+0.2
                 pos_1.pose.position.z = 1
                 local_pos_pub_1.publish(pos_1)
                 ofb_ctl.setAutoLandMode_1()
@@ -936,7 +936,7 @@ def drone_1():
                     setpoints_1.extend([stateMt.row_spawn_sp1[k],(0,4,4)])
                     print('after reaching goal setpoints are', setpoints_1)
                     x = x+1
-                    #rospy.sleep(5)
+                    rospy.sleep(1)
 
                 i = i+1
                 print('d1 i increased to ', i, 'after reaching goal')
