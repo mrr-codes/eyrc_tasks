@@ -563,7 +563,7 @@ def drone_0():
                     pos_0.pose.position.y = stateMt.row_spawn_sp0[k][1]
                     pos_0.pose.position.z = 1.5
                     local_pos_pub_0.publish(pos_0)
-                    rospy.sleep(3)
+                    rospy.sleep(2)
                     m += 1
             #After lowering,PID velocitiy cofntrol for precise centring will take place based on distance from Aruco centre to camera centre and the current height of the drone 
             if m == 0 :
@@ -840,7 +840,7 @@ def drone_1():
                     pos_1.pose.position.y = stateMt.row_spawn_sp1[k][1]
                     pos_1.pose.position.z = 1.5
                     local_pos_pub_1.publish(pos_1)
-                    rospy.sleep(3)
+                    rospy.sleep(2)
                     m += 1
             #After lowering,PID velocitiy cofntrol for precise centring will take place based on distance from Aruco centre to camera centre and the current height of the drone 
             if m==0:
