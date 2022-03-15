@@ -156,8 +156,8 @@ class stateMoniter:
                                    (14.7, -4.95, 1.84)], [(15.55, -7.4, 1.84), (15.55, -6.17, 1.84), (15.55, -4.95, 1.84)], [(16.4, -7.4, 1.84), (16.4, -6.17, 1.84), (16.4, -4.95, 1.84)]])
 
         #The grid cell setpoint values of the red truck
-        self.red_truck = np.array([[(56.5, 64.75, 1.84), (56.5, 65.98, 1.84), (56.5, 67.21, 1.84)], [(57.35, 64.75, 1.84), (57.35, 65.98, 1.84), (57.35, 67.21, 1.84)],
-                                  [(58.2, 64.75, 1.84), (58.2, 65.98, 1.84), (58.2, 67.21, 1.84)], [(59.05, 64.75, 1.84), (59.05, 65.98, 1.84), (59.05, 67.21, 1.84)]])
+        self.red_truck = np.array([[(56.7, 64.75, 1.84), (56.7, 65.98, 1.84), (56.7, 67.21, 1.84)], [(57.55, 64.75, 1.84), (57.55, 65.98, 1.84), (57.55, 67.21, 1.84)],
+                                  [(58.4, 64.75, 1.84), (58.4, 65.98, 1.84), (58.4, 67.21, 1.84)], [(59.4, 64.75, 1.84), (59.4, 65.98, 1.84), (59.4, 67.21, 1.84)]])
 
         
         #Sequencing of dropping the boxes for each truck
@@ -449,7 +449,7 @@ def drone_0():
     rospy.Subscriber('/spawn_info', UInt8, stateMt.spawn_clbk)
     rate = rospy.Rate(20.0)
 
-    setpoints_0 = [(0, 0, 3)]#setpoints list
+    setpoints_0 = [(0, 0,8)]#setpoints list
     # Create empty message containers for position and velocity messages 
     pos_0 = PoseStamped()
     pos_0.pose.position.x = 0
@@ -506,6 +506,7 @@ def drone_0():
         #print('d0', np.linalg.norm(desired - pos))
         if (i==1):
             return np.linalg.norm(desired - pos) < 0.15
+        
         elif (i > 3 and i == (len(setpoints_0) - 3)):
             return np.linalg.norm(desired - pos) < 0.2
         else:
@@ -594,7 +595,7 @@ def drone_0():
                 print('d0 Attempted to land c=', str(land_count))
                 #loop to ensure proper gripping 
                 while not stateMt.check_gripper_0 == 'True':
-                    if stateMt.local_pos_0.z < 0.45:
+                    if stateMt.local_pos_0.z < 0.5:
                         ofb_ctl.gripper_activate_0(True)
                 stateMt.boxes_in_row -= 1  # deducting 1 from dictionary after picking a box
                 if stateMt.check_gripper_0 == 'True':
@@ -936,7 +937,7 @@ def drone_1():
                     setpoints_1.extend([stateMt.row_spawn_sp1[k],(0,4,4)])
                     print('after reaching goal setpoints are', setpoints_1)
                     x = x+1
-                    rospy.sleep(1)
+                    #rospy.sleep(1)
 
                 i = i+1
                 print('d1 i increased to ', i, 'after reaching goal')
@@ -944,7 +945,7 @@ def drone_1():
             if i > 3 and i == (len(setpoints_1) - 2):
                 ofb_ctl.setAutoLandMode_1()
                 #Loop to ensure that ungripping doesn't happen when drone height is > 2.3m
-                while not stateMt.local_pos_1.z<2.3:
+                while not stateMt.local_pos_1.z<2.5:
                     loop=0              
                 for o in range(3):    
                     ofb_ctl.gripper_activate_1(False)
