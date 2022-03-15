@@ -204,26 +204,31 @@ class stateMoniter:
         self.boxes_in_row = self.box_counts[row_no]
         if drone_no == 0:
             if self.boxes_in_row> 4:
-                return (38, 4*(row_no-1), 3)
+                return (38, 4*(row_no-1)+1, 3)
             elif self.boxes_in_row > 3:
-                return (30, 4*(row_no-1), 3)
+                return (30, 4*(row_no-1)+1, 3)
             elif self.boxes_in_row > 2:
-                return (19, 4*(row_no-1), 3)
+                return (19, 4*(row_no-1)+1, 3)
             elif self.boxes_in_row > 1:
-                return (9, 4*(row_no-1), 3)
+                return (9, 4*(row_no-1)+1, 3)
             else:
-                return(-1,4*(row_no-1),3)
+                return(-1,4*(row_no-1)+1,3)
         else:
             if self.boxes_in_row>4:
-                return (38, 4*(row_no-16), 3)
+                return (38, 4*(row_no-16)-1, 3)
             elif self.boxes_in_row > 3:
-                return (30, 4*(row_no-16), 3)
+                return (30, 4*(row_no-16)-1, 3)
             elif self.boxes_in_row >2:
-                return (19, 4*(row_no-16), 3)
+                return (19, 4*(row_no-16)-1, 3)
             elif self.boxes_in_row > 1:
-                return (9, 4*(row_no-16), 3)    
+                return (9, 4*(row_no-16)-1, 3)    
             else:
-                return(-2,4*(row_no-16),3)
+                return(-2,4*(row_no-16)-1,3)
+
+
+
+
+
 #Callback of spawn info topic
     '''* Function Name: spawn_clbk
     * Input: msg (spawn_info data)
@@ -505,6 +510,7 @@ def drone_0():
                         stateMt.local_pos_0.y,
                         stateMt.local_pos_0.z))
         #print('d0', np.linalg.norm(desired - pos))
+        rospy.sleep(0.5)
         if (i==1):
             return np.linalg.norm(desired - pos) < 0.15
         elif (i > 3 and i == (len(setpoints_0) - 3)):
@@ -524,7 +530,8 @@ def drone_0():
     current_truck_location = None
     required_row =  None
     required_row_setpoint = (0,0,0)
-    truck_pts = ((0,0,0), (0,0,0))
+    continue_search = False
+    truck_pts = ((110,0,0), (110,0,0))
 
     ofb_ctl.setArm_0()
     while not rospy.is_shutdown():
@@ -533,7 +540,7 @@ def drone_0():
         ofb_ctl.offboard_set_mode_0()
         reached = check_position_0()
 
-        # Condition for clearing the previous setpoints list then append row search start setpoints, once a box is dropped 
+        # Condition for clearing the previous setpoints list then append row search start setpoints, once a box is droppe 
         if i > 2 and (len(setpoints_0)-1):
             print('d0 clearing spts.')
             setpoints_0.clear()
@@ -558,12 +565,9 @@ def drone_0():
 
                 else:
                     required_row_setpoint = (stateMt.local_pos_0.x, stateMt.local_pos_0.y, stateMt.local_pos_0.z) 
+                            
+            setpoints_0.extend([(stateMt.local_pos_0.x,stateMt.local_pos_0.y,6),required_row_setpoint,required_row_setpoint,required_row_setpoint])#Raising drone to a height of 6m setpoint,appending Kth element of row_spawn list and (0,0,4) works as a dummy setpoint for check_position func
 
-            try:
-                             setpoints_0.extend([(stateMt.local_pos_0.x,stateMt.local_pos_0.y,6),required_row_setpoint,required_row_setpoint,required_row_setpoint])#Raising drone to a height of 6m setpoint,appending Kth element of row_spawn list and (0,0,4) works as a dummy setpoint for check_position func
-            except:
-                print("Row_spawn_0 is empty")
-            print('d0 Setpoints list as of now', setpoints_0)
 
         # Setting necessary variables on reaching row search start
         if  (pos_0.pose.position.x == required_row_setpoint[0] and pos_0.pose.position.y==required_row_setpoint[1]) and reached==True :
@@ -584,6 +588,7 @@ def drone_0():
                     pos_0.pose.position.x = stateMt.local_pos_0.x
                     pos_0.pose.position.y = stateMt.local_pos_0.y
                     pos_0.pose.position.z = 1.5
+                    continue_search = True
                     local_pos_pub_0.publish(pos_0)
                     rospy.sleep(2)
                     m += 1
@@ -593,16 +598,16 @@ def drone_0():
                     vi = 0.2
                 else:
                     vi = -0.1
-                vel_0.twist.linear.x = (
-                    ((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/300)
-                vel_0.twist.linear.y = -((((img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/400) - (
-                    img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z) - previous_y_error)/40)-vi
+                vel_0.twist.linear.x = (((img_proc.position_aruco_x_0 - 200)*stateMt.local_pos_0.z)/300)
+                vel_0.twist.linear.y = -((((img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z))*stateMt.local_pos_0.z)/400) - ((img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z)) - previous_y_error)/400)#-vi
                 vel_0.twist.linear.z = (1.5-stateMt.local_pos_0.z)/20
+                print('vel0 is ', vel_0)
                 local_vel_pub_0.publish(vel_0)
 
             # When camera centre aligns under desired area inside the exocircle, box gripping sequence starts
-            if(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2)<= (img_proc.exo_rad_0)**2) and ((225 <img_proc.position_aruco_y_0-4) and (193<img_proc.position_aruco_x_0)):
+            if(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2)<= (img_proc.exo_rad_0)**2) and ((225 <img_proc.position_aruco_y_0-6) and (190<img_proc.position_aruco_x_0)):
                 flag1 = True
+                continue_search = False 
                 box_id = list(img_proc.Detected_ArUco_markers_0.keys())[0]
 
                 img_proc.box_setpoint = [
@@ -614,6 +619,7 @@ def drone_0():
                 pos_0.pose.position.z = 1
                 local_pos_pub_0.publish(pos_0)
                 ofb_ctl.setAutoLandMode_0()
+                print('Autolanding at 625')
                 print('d0 Attempted to land c=', str(land_count))
                 #loop to ensure proper gripping 
                 while not stateMt.check_gripper_0 == 'True':
@@ -637,9 +643,9 @@ def drone_0():
                     setpoint = (stateMt.local_pos_0.x,
                                 stateMt.local_pos_0.y, 3)
                     setpoints_0.insert(0, setpoint) #Inserting setpoint for drone to raise to a height after picking up the box
-                    truck_pts = stateMt.calculate_truck_point(box_id, 0)#Calculating truck_setpoint based on the id of the box and drone number
-                    setpoints_0.extend(
-                        [truck_pts[0], truck_pts[1], (0, 0, 0)])#Appending truck_setpoints and a dummy point for check_position func
+
+                    truck_pts = stateMt.calculate_truck_point(box_id, 0)#Calculating truck_setpoint based on the id of the box and drone number 
+                    setpoints_0.extend([truck_pts[0], truck_pts[1], (0, 0, 0)])#Appending truck_setpoints and a dummy point for check_position func
                     print('d0 truck setpoints have been added, wchich are:', truck_pts, 'Setpoints list as of now', setpoints_0)
                     
                     #i = i+1
@@ -650,8 +656,7 @@ def drone_0():
                     local_pos_pub_0.publish(pos_0)
                     
                     
-            previous_y_error = img_proc.position_aruco_y_0 - \
-                (200 + 80/stateMt.local_pos_0.z)#Calculating the previous y error based on distance between aruco and drone,height
+            previous_y_error = img_proc.position_aruco_y_0 - (200 + 80/stateMt.local_pos_0.z) #Calculating the previous y error based on distance between aruco and drone,height
 
             last_pixel_aruco_detected_x = img_proc.position_aruco_x_0
             last_pixel_aruco_detected_y = img_proc.position_aruco_y_0
@@ -664,7 +669,8 @@ def drone_0():
             pos_0.pose.position.z = setpoints_0[i][2]
             
             #Condition for checking whether drone is at row start i.e coordinates in multiples of 4, and then executing velocity control
-            if reached == True and  x!= 0 and (abs(setpoints_0[i][1]) % 4 == 0) and x>0:
+            if reached == True and (setpoints_0[i][1] != 0 and abs((setpoints_0[i][1])-1) % 4 == 0) and x>0:
+                print('Drone 0 reached and starting velocity control')
                 vel_0.twist.linear.x = 1.5
                 vel_0.twist.linear.y = 0
                 vel_0.twist.linear.z = -0.05
@@ -673,6 +679,7 @@ def drone_0():
             #Publishing row start velocity
             if flag_flip_pos_vol == True:
                 local_vel_pub_0.publish(vel_0)
+                print('Publishing vel0')
                 box_dropped = False
 
             else:
@@ -698,7 +705,8 @@ def drone_0():
                 print('d0 i increased to ', i, 'after reaching goal')
             # Condition whether the drone has reached truck drop point and then to land to drop the box
             if (pos_0.pose.position.x == truck_pts[0][0] and pos_0.pose.position.y==truck_pts[0][1]) and reached==True :
-                ofb_ctl.setAutoLandMode_0() 
+                ofb_ctl.setAutoLandMode_0()
+                print('Autolanding at 710') 
                 #Loop to ensure that ungripping doesn't happen when drone height is > 2.3m
                 while not stateMt.local_pos_0.z < 2.3:
                     loop=0
@@ -708,7 +716,7 @@ def drone_0():
                 box_dropped = True #This will ensure that boxes on the truck are not picked up 
                 print("d0 Releasing box")
 
-        elif img_proc.aruco_thresh_bool == True and len(img_proc.Detected_ArUco_markers_0) == 0:
+        elif img_proc.aruco_thresh_bool == True and len(img_proc.Detected_ArUco_markers_0) == 0 and continue_search==True:
             if last_pixel_aruco_detected_x<200 and last_pixel_aruco_detected_y<200:
                 f = -1
                 g = 1
@@ -835,6 +843,7 @@ def drone_1():
                         stateMt.local_pos_1.y,
                         stateMt.local_pos_1.z))
         #print('d1', np.linalg.norm(desired - pos))
+        rospy.sleep(0.5)
         if (i==1):
             return np.linalg.norm(desired - pos) < 0.1
         elif (i > 3 and i == (len(setpoints_1) - 3)):
@@ -855,7 +864,8 @@ def drone_1():
     current_truck_location = None
     required_row =  None
     required_row_setpoint = (0,0,0)
-    truck_pts = ((0,0,0), (0,0,0))
+    truck_pts = ((110,0,0), (110,0,0))
+    continue_search = False
 
     ofb_ctl.setArm_1()
     while not rospy.is_shutdown():
@@ -916,6 +926,7 @@ def drone_1():
                     pos_1.pose.position.x = stateMt.local_pos_1.x
                     pos_1.pose.position.y = stateMt.local_pos_1.y
                     pos_1.pose.position.z = 1.5
+                    continue_search = True
                     local_pos_pub_1.publish(pos_1)
                     rospy.sleep(2)
                     m += 1
@@ -927,12 +938,12 @@ def drone_1():
                     vi = -0.1
                 vel_1.twist.linear.x = (
                     ((img_proc.position_aruco_x_1 - 200)*stateMt.local_pos_1.z)/300)
-                vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/400) - (
-                    img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z) - previous_y_error)/40)-vi
+                vel_1.twist.linear.y = -((((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z))*stateMt.local_pos_1.z)/400) - ((img_proc.position_aruco_y_1 - (200 + 80/stateMt.local_pos_1.z)) - previous_y_error)/40)-vi
                 vel_1.twist.linear.z = (1.5-stateMt.local_pos_1.z)/20
                 print(vel_1.twist.linear.y,"drone1")
                 
                 local_vel_pub_1.publish(vel_1)
+                
                 
 
 
@@ -949,6 +960,7 @@ def drone_1():
             # When camera centre aligns under desired area inside the exocircle, box gripping sequence starts
             if(((200 - img_proc.position_aruco_x_1)**2 + (225-img_proc.position_aruco_y_1)**2)<= (img_proc.exo_rad_1)**2) and ((225 <img_proc.position_aruco_y_1-4) and (193<img_proc.position_aruco_x_1)):
                 flag1 = True
+                continue_search = False
                 box_id = list(img_proc.Detected_ArUco_markers_1.keys())[0]
 
                 img_proc.box_setpoint = [
@@ -967,7 +979,7 @@ def drone_1():
                 stateMt.boxes_in_row -= 1    
                 if stateMt.check_gripper_1 == 'True':
                     print('d1 The box has been gripped')
-                    land_count += 1
+                    land_count += 1             
                     box_dropped = True
                     current_truck_location = box_id 
                 else:
@@ -987,7 +999,7 @@ def drone_1():
 
 
                     truck_pts = stateMt.calculate_truck_point(box_id, 1)#Calculating truck_setpoint based on the id of the box and drone number
-                    setpoints_1.extend([truck_pts[0], truck_pts[1],(0, 0, 0)])#Appending truck_setpoints and a dummy point for check_position func
+                    setpoints_1.extend([truck_pts[0],truck_pts[1],(0, 0, 0)])#Appending truck_setpoints and a dummy point for check_position func  truck_pts[1],
                     print('d1 truck setpoints have been added, which are:', truck_pts, 'Setpoints list as of now', setpoints_1)
 
                     #print('d1 i increased to ', i, 'after re-arming')
@@ -1016,7 +1028,7 @@ def drone_1():
             pos_1.pose.position.z = setpoints_1[i][2]
 
             #Condition for checking whether drone is at row start i.e coordinates in multiples of 4, and then executing velocity control
-            if reached == True and (setpoints_1[i][1] != 0 and abs(setpoints_1[i][1]) % 4 == 0) and x>0:
+            if reached == True and (setpoints_1[i][1] != 0 and abs((setpoints_1[i][1])+1) % 4 == 0) and x>0:
                 vel_1.twist.linear.x = 1.5
                 vel_1.twist.linear.y =0 #-((stateMt.row_spawn_sp1[k][1]-stateMt.local_pos_1.y)/2)
                 vel_1.twist.linear.z = -0.05
@@ -1071,7 +1083,8 @@ def drone_1():
 
 
 
-        elif img_proc.aruco_thresh_bool == True and len(img_proc.Detected_ArUco_markers_1) == 0:
+        elif img_proc.aruco_thresh_bool == True and len(img_proc.Detected_ArUco_markers_1) == 0 and continue_search == False:
+            print('inside jajaja here')
             if last_pixel_aruco_detected_x<200 and last_pixel_aruco_detected_y<200:
                 f = -1
                 g = 1
