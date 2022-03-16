@@ -202,24 +202,24 @@ class stateMoniter:
         self.boxes_in_row = self.box_counts[row_no]
         if drone_no == 0:
             if self.boxes_in_row> 4:
-                return (38, 4*(row_no-1), 3)
+                return (24, 4*(row_no-1), 3)
             elif self.boxes_in_row > 3:
-                return (30, 4*(row_no-1), 3)
+                return (18, 4*(row_no-1), 3)
             elif self.boxes_in_row > 2:
-                return (19, 4*(row_no-1), 3)
+                return (12, 4*(row_no-1), 3)
             elif self.boxes_in_row > 1:
-                return (9, 4*(row_no-1), 3)
+                return (6, 4*(row_no-1), 3)
             else:
                 return(-1,4*(row_no-1),3)
         else:
             if self.boxes_in_row>4:
-                return (38, 4*(row_no-16), 3)
+                return (24, 4*(row_no-16), 3)
             elif self.boxes_in_row > 3:
-                return (30, 4*(row_no-16), 3)
+                return (18, 4*(row_no-16), 3)
             elif self.boxes_in_row >2:
-                return (19, 4*(row_no-16), 3)
+                return (12, 4*(row_no-16), 3)
             elif self.boxes_in_row > 1:
-                return (9, 4*(row_no-16), 3)    
+                return (6, 4*(row_no-16), 3)    
             else:
                 return(-2,4*(row_no-16),3)
 #Callback of spawn info topic
@@ -449,7 +449,7 @@ def drone_0():
     rospy.Subscriber('/spawn_info', UInt8, stateMt.spawn_clbk)
     rate = rospy.Rate(20.0)
 
-    setpoints_0 = [(0, 0,8)]#setpoints list
+    setpoints_0 = [(0,0,8)]#setpoints list
     # Create empty message containers for position and velocity messages 
     pos_0 = PoseStamped()
     pos_0.pose.position.x = 0
@@ -579,7 +579,7 @@ def drone_0():
                 local_vel_pub_0.publish(vel_0)
 
             # When camera centre aligns under desired area inside the exocircle, box gripping sequence starts
-            if(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2)<= (img_proc.exo_rad_0)**2) and (225 <img_proc.position_aruco_y_0):
+            if(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2)<= (img_proc.exo_rad_0)**2) and (225 <img_proc.position_aruco_y_0+10):
                 flag1 = True
                 box_id = list(img_proc.Detected_ArUco_markers_0.keys())[0]
 
@@ -588,7 +588,7 @@ def drone_0():
                 print('d0 Box is at ', img_proc.box_setpoint)
                 #lowering to a height of 1m where the aruco is placed
                 pos_0.pose.position.x = img_proc.box_setpoint[0]
-                pos_0.pose.position.y = img_proc.box_setpoint[1]+0.2
+                pos_0.pose.position.y = img_proc.box_setpoint[1]+0.3
                 pos_0.pose.position.z = 1
                 local_pos_pub_0.publish(pos_0)
                 ofb_ctl.setAutoLandMode_0()
@@ -635,7 +635,10 @@ def drone_0():
             if reached == True and  x!= 0 and (abs(setpoints_0[i][1]) % 4 == 0):
                 vel_0.twist.linear.x = 1.5
                 vel_0.twist.linear.y = 0
-                vel_0.twist.linear.z = -0.05
+                if stateMt.local_pos_0.x<4:
+                    vel_0.twist.linear.z = -0.15
+                else:
+                    vel_0.twist.linear.z = -0.1
                 
                 flag_flip_pos_vol = True  # have to turn the boolean to false if aruco detected
             #Publishing row start velocity
@@ -860,7 +863,7 @@ def drone_1():
 
     
             # When camera centre aligns under desired area inside the exocircle, box gripping sequence starts
-            if(((200 - img_proc.position_aruco_x_1)**2 + (225-img_proc.position_aruco_y_1)**2)<= (img_proc.exo_rad_1)**2) and (225 <img_proc.position_aruco_y_1):
+            if(((200 - img_proc.position_aruco_x_1)**2 + (225-img_proc.position_aruco_y_1)**2)<= (img_proc.exo_rad_1)**2) and (225 <img_proc.position_aruco_y_1+5):
                 flag1 = True
                 box_id = list(img_proc.Detected_ArUco_markers_1.keys())[0]
 
@@ -915,7 +918,10 @@ def drone_1():
             if reached == True and (setpoints_1[i][1] != 0 and abs(setpoints_1[i][1]) % 4 == 0):
                 vel_1.twist.linear.x = 1.5
                 vel_1.twist.linear.y =0 #-((stateMt.row_spawn_sp1[k][1]-stateMt.local_pos_1.y)/2)
-                vel_1.twist.linear.z = -0.05
+                if stateMt.local_pos_0.x<4:
+                    vel_1.twist.linear.z = -0.1
+                else:
+                    vel_1.twist.linear.z = -0.05
 
                 flag_flip_pos_vol = True  # have to turn it false in aruco detected
 
