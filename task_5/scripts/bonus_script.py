@@ -202,26 +202,26 @@ class stateMoniter:
         self.boxes_in_row = self.box_counts[row_no]
         if drone_no == 0:
             if self.boxes_in_row> 4:
-                return (24, 4*(row_no-1), 3)
+                return (39, 4*(row_no-1), 3)
             elif self.boxes_in_row > 3:
-                return (18, 4*(row_no-1), 3)
+                return (29, 4*(row_no-1), 3)
             elif self.boxes_in_row > 2:
-                return (12, 4*(row_no-1), 3)
+                return (19, 4*(row_no-1), 3)
             elif self.boxes_in_row > 1:
-                return (6, 4*(row_no-1), 3)
+                return (9, 4*(row_no-1), 3)
             else:
                 return(-1,4*(row_no-1),3)
         else:
             if self.boxes_in_row>4:
-                return (24, 4*(row_no-16), 3)
+                return (39, 4*(row_no-16), 3)
             elif self.boxes_in_row > 3:
-                return (18, 4*(row_no-16), 3)
+                return (29, 4*(row_no-16), 3)
             elif self.boxes_in_row >2:
-                return (12, 4*(row_no-16), 3)
+                return (19, 4*(row_no-16), 3)
             elif self.boxes_in_row > 1:
-                return (6, 4*(row_no-16), 3)    
+                return (9, 4*(row_no-16), 3)    
             else:
-                return(-2,4*(row_no-16),3)
+                return(-2.5,4*(row_no-16),3)
 #Callback of spawn info topic
     '''* Function Name: spawn_clbk
     * Input: msg (spawn_info data)
@@ -314,7 +314,7 @@ class image_processing:
             gray, aruco_dict, parameters=parameters)#aruco detection function is called, returns the ID and Corners
 
         Detected_ArUco_markers_func = {}
-        if ids != None:
+        if len(corners)>0:
 
             Detected_ArUco_markers_func = dict(zip(ids[:, 0], corners))
 
@@ -449,7 +449,7 @@ def drone_0():
     rospy.Subscriber('/spawn_info', UInt8, stateMt.spawn_clbk)
     rate = rospy.Rate(20.0)
 
-    setpoints_0 = [(0,0,8)]#setpoints list
+    setpoints_0 = [(-1,0,3)]#setpoints list
     # Create empty message containers for position and velocity messages 
     pos_0 = PoseStamped()
     pos_0.pose.position.x = 0
@@ -560,7 +560,7 @@ def drone_0():
 
                     print('d0 publishing set pt to decrease height to 1m')
                     pos_0.pose.position.x = stateMt.local_pos_0.x
-                    pos_0.pose.position.y = stateMt.row_spawn_sp0[k][1]
+                    pos_0.pose.position.y = stateMt.row_spawn_sp0[k][1]+1
                     pos_0.pose.position.z = 1.5
                     local_pos_pub_0.publish(pos_0)
                     rospy.sleep(1)
@@ -579,7 +579,7 @@ def drone_0():
                 local_vel_pub_0.publish(vel_0)
 
             # When camera centre aligns under desired area inside the exocircle, box gripping sequence starts
-            if(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2)<= (img_proc.exo_rad_0)**2) and (225 <img_proc.position_aruco_y_0+10):
+            if(((200 - img_proc.position_aruco_x_0)**2 + (225-img_proc.position_aruco_y_0)**2)<= (img_proc.exo_rad_0)**2) and (225 <img_proc.position_aruco_y_0):
                 flag1 = True
                 box_id = list(img_proc.Detected_ArUco_markers_0.keys())[0]
 
@@ -638,7 +638,7 @@ def drone_0():
                 if stateMt.local_pos_0.x<4:
                     vel_0.twist.linear.z = -0.15
                 else:
-                    vel_0.twist.linear.z = -0.1
+                    vel_0.twist.linear.z = -0.05
                 
                 flag_flip_pos_vol = True  # have to turn the boolean to false if aruco detected
             #Publishing row start velocity
@@ -710,7 +710,7 @@ def drone_1():
 
     rate = rospy.Rate(20.0)
 
-    setpoints_1= [(0, 0, 3)]#setpoints list
+    setpoints_1= [(-2, 0, 3)]#setpoints list
     # Create empty message containers for position and velocity messages 
     pos_1 = PoseStamped()
     pos_1.pose.position.x = 0
@@ -840,7 +840,7 @@ def drone_1():
                 if 150 < img_proc.position_aruco_x_1 < 250:
                     print('d1 publishing set pt to decrease height to 1m')
                     pos_1.pose.position.x = stateMt.local_pos_1.x
-                    pos_1.pose.position.y = stateMt.row_spawn_sp1[k][1]
+                    pos_1.pose.position.y = stateMt.row_spawn_sp1[k][1]+1
                     pos_1.pose.position.z = 1.5
                     local_pos_pub_1.publish(pos_1)
                     rospy.sleep(1)
@@ -848,7 +848,7 @@ def drone_1():
             #After lowering,PID velocitiy cofntrol for precise centring will take place based on distance from Aruco centre to camera centre and the current height of the drone 
             if m==0:
                 if (225-img_proc.position_aruco_y_1)<0:
-                    vi = 0.2
+                    vi = 0.1
                 else:
                     vi = -0.1
                 vel_1.twist.linear.x = (
@@ -863,7 +863,7 @@ def drone_1():
 
     
             # When camera centre aligns under desired area inside the exocircle, box gripping sequence starts
-            if(((200 - img_proc.position_aruco_x_1)**2 + (225-img_proc.position_aruco_y_1)**2)<= (img_proc.exo_rad_1)**2) and (225 <img_proc.position_aruco_y_1+5):
+            if(((200 - img_proc.position_aruco_x_1)**2 + (225-img_proc.position_aruco_y_1)**2)<= (img_proc.exo_rad_1)**2) and (225 <img_proc.position_aruco_y_1):
                 flag1 = True
                 box_id = list(img_proc.Detected_ArUco_markers_1.keys())[0]
 
@@ -918,10 +918,8 @@ def drone_1():
             if reached == True and (setpoints_1[i][1] != 0 and abs(setpoints_1[i][1]) % 4 == 0):
                 vel_1.twist.linear.x = 1.5
                 vel_1.twist.linear.y =0 #-((stateMt.row_spawn_sp1[k][1]-stateMt.local_pos_1.y)/2)
-                if stateMt.local_pos_0.x<4:
-                    vel_1.twist.linear.z = -0.1
-                else:
-                    vel_1.twist.linear.z = -0.05
+                
+                vel_1.twist.linear.z = -0.05
 
                 flag_flip_pos_vol = True  # have to turn it false in aruco detected
 
